@@ -1,25 +1,35 @@
-# Putkisilta Plug-in
+# Putkisilta Plug-in (täysi versio)
 
-## Käännös Visual Studiossa
+## Ominaisuudet
+- Dialogi parametreille (leveys, korkeus, max-jako, materiaali, korkeusasema)
+- Profiilivalinnat kaikille osille (pudotusvalikko + vapaa kirjoitus)
+- Päätykehille erilliset profiilit
+- Korkeusasema: keskikorkeus / alapinta / yläpinta
+- N-ristikko seinissä, KT-ristikko katossa ja lattiassa
 
-1. Luo uusi **Class Library (.NET Framework)** -projekti (esim. net48).
+## Käännös
+1. Luo Visual Studiossa **Class Library (.NET Framework)** -projekti.
 2. Lisää viittaukset:
    - Tekla.Structures.dll
    - Tekla.Structures.Model.dll
    - Tekla.Structures.Plugins.dll
    - Tekla.Structures.Geometry3d.dll
-   (löytyvät Tekla-asennuksesta `nt\bin\` tai NuGet-paketeista)
-3. Kopioi `PutkisiltaPlugin.cs` projektiin.
-4. Käännä (Build).
-5. Kopioi syntynyt `.dll` kansioon:
+   - Tekla.Structures.Dialog.dll
+3. Lisää tiedostot projektiin:
+   - PutkisiltaPlugin.cs
+   - PutkisiltaForm.cs
+   - PutkisiltaForm.Designer.cs
+4. Käännä.
+5. Kopioi `.dll` kansioon:
    ```
    C:\ProgramData\Trimble\Tekla Structures\<versio>\environments\common\extensions\Putkisilta\
    ```
 6. Käynnistä Tekla uudelleen.
 7. Etsi **Putkisilta** Applications & components -luettelosta.
 
-## Huomiot
-
-- Testiversio – parametrit kovakoodattuina (sama kuin makrossa).
-- Dialogi (profiilivalinnat, mitat) lisätään seuraavassa versiossa.
-- Logiikka on identtinen makron kanssa, jotta molempia voidaan kehittää rinnakkain.
+## Käyttö
+1. Avaa dialogi.
+2. Aseta mitat ja profiilit.
+3. Paina OK / Käytä.
+4. Valitse kaksi pistettä mallista.
+5. Silta generoituu.
