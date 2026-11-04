@@ -1,6 +1,6 @@
 // PutkisiltaMacro.cs
-// Tekla Open API -makro putkisillan rungon luontiin + dialogi parametreille
-// Yhteensopiva Teklan makrokääntäjän kanssa
+// Tekla Open API -makro putkisillan rungon luontiin
+// Yksinkertainen dialogi, joka toimii Teklan makrokääntäjässä
 // Kopioi mallikansion macros\modeling\ -kansioon
 
 using System;
@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using Tekla.Structures.Model;
 using Tekla.Structures.Model.UI;
 using TSG = Tekla.Structures.Geometry3d;
-using Drawing = System.Drawing;
 
 namespace UserMacros
 {
@@ -24,36 +23,53 @@ namespace UserMacros
                 return;
             }
 
-            PutkisiltaDialog form = new PutkisiltaDialog();
-            if (form.ShowDialog() != DialogResult.OK)
-                return;
+            // Yksinkertainen dialogi
+            string widthStr = Microsoft.VisualBasic.Interaction.InputBox("Leveys (mm):", "Putkisilta", "1200");
+            string heightStr = Microsoft.VisualBasic.Interaction.InputBox("Korkeus (mm):", "Putkisilta", "1800");
+            string maxSpacingStr = Microsoft.VisualBasic.Interaction.InputBox("Max kehäjako (mm):", "Putkisilta", "3000");
+            string material = Microsoft.VisualBasic.Interaction.InputBox("Materiaali:", "Putkisilta", "S355J2");
+            string classStr = Microsoft.VisualBasic.Interaction.InputBox("Class:", "Putkisilta", "1");
+            string prefix = Microsoft.VisualBasic.Interaction.InputBox("Prefix:", "Putkisilta", "P");
+            string startNumberStr = Microsoft.VisualBasic.Interaction.InputBox("Start number:", "Putkisilta", "1");
+            string chordTop = Microsoft.VisualBasic.Interaction.InputBox("Yläpaarre:", "Putkisilta", "SHS150*150*6");
+            string chordBot = Microsoft.VisualBasic.Interaction.InputBox("Alapaarre:", "Putkisilta", "SHS150*150*6");
+            string frameVert = Microsoft.VisualBasic.Interaction.InputBox("Kehä pysty:", "Putkisilta", "SHS100*100*5");
+            string frameHoriz = Microsoft.VisualBasic.Interaction.InputBox("Kehä vaaka:", "Putkisilta", "SHS100*100*5");
+            string endVert = Microsoft.VisualBasic.Interaction.InputBox("Pääty pysty (tyhjä = sama):", "Putkisilta", "");
+            string endHoriz = Microsoft.VisualBasic.Interaction.InputBox("Pääty vaaka (tyhjä = sama):", "Putkisilta", "");
+            string diagWall = Microsoft.VisualBasic.Interaction.InputBox("Seinä diagonaali:", "Putkisilta", "SHS80*80*4");
+            string diagRF = Microsoft.VisualBasic.Interaction.InputBox("Katto/lattia diagonaali:", "Putkisilta", "SHS80*80*4");
 
-            double width = form.WidthValue;
-            double height = form.HeightValue;
-            double maxSpacing = form.MaxSpacingValue;
-            string material = form.MaterialValue;
-            string classStr = form.ClassValue;
-            string prefix = form.PrefixValue;
-            int startNumber = form.StartNumberValue;
-            int heightPos = form.HeightPositionValue;
+            double width = 1200;
+            double.TryParse(widthStr, out width);
+            if (width <= 0) width = 1200;
 
-            string chordTop = form.ProfileChordTop;
-            string chordBot = form.ProfileChordBottom;
-            string frameVert = form.ProfileFrameVertical;
-            string frameHoriz = form.ProfileFrameHorizontal;
-            string endVert = form.ProfileEndVertical;
-            string endHoriz = form.ProfileEndHorizontal;
-            string diagWall = form.ProfileDiagonalWall;
-            string diagRF = form.ProfileDiagonalRoofFloor;
+            double height = 1800;
+            double.TryParse(heightStr, out height);
+            if (height <= 0) height = 1800;
+
+            double maxSpacing = 3000;
+            double.TryParse(maxSpacingStr, out maxSpacing);
+            if (maxSpacing <= 0) maxSpacing = 3000;
+
+            int startNumber = 1;
+            int.TryParse(startNumberStr, out startNumber);
+            if (startNumber <= 0) startNumber = 1;
+
+            if (string.IsNullOrEmpty(material)) material = "S355J2";
+            if (string.IsNullOrEmpty(classStr)) classStr = "1";
+            if (string.IsNullOrEmpty(prefix)) prefix = "P";
+            if (string.IsNullOrEmpty(chordTop)) chordTop = "SHS150*150*6";
+            if (string.IsNullOrEmpty(chordBot)) chordBot = "SHS150*150*6";
+            if (string.IsNullOrEmpty(frameVert)) frameVert = "SHS100*100*5";
+            if (string.IsNullOrEmpty(frameHoriz)) frameHoriz = "SHS100*100*5";
+            if (string.IsNullOrEmpty(diagWall)) diagWall = "SHS80*80*4";
+            if (string.IsNullOrEmpty(diagRF)) diagRF = "SHS80*80*4";
 
             Picker picker = new Picker();
             TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
             TSG.Point p2 = picker.PickPoint("Valitse sillan loppupiste");
             if (p1 == null || p2 == null) return;
-
-            double zShift = 0;
-            if (heightPos == 1) zShift = -height / 2.0;
-            else if (heightPos == 2) zShift = height / 2.0;
 
             TSG.Vector direction = new TSG.Vector(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
             double length = direction.GetLength();
@@ -64,9 +80,6 @@ namespace UserMacros
             TSG.Vector right = direction.Cross(up);
             if (right.GetLength() < 0.1) right = new TSG.Vector(1, 0, 0);
             right.Normalize();
-
-            p1 = p1 + up * zShift;
-            p2 = p2 + up * zShift;
 
             int bayCount = Math.Max(1, (int)Math.Ceiling(length / maxSpacing));
             double actualSpacing = length / bayCount;
@@ -223,181 +236,6 @@ namespace UserMacros
             beam.Position.Depth = Position.DepthEnum.MIDDLE;
             beam.Position.Plane = Position.PlaneEnum.MIDDLE;
             beam.Insert();
-        }
-    }
-
-    public class PutkisiltaDialog : Form
-    {
-        public double WidthValue = 1200;
-        public double HeightValue = 1800;
-        public double MaxSpacingValue = 3000;
-        public string MaterialValue = "S355J2";
-        public string ClassValue = "1";
-        public string PrefixValue = "P";
-        public int StartNumberValue = 1;
-        public int HeightPositionValue = 0;
-
-        public string ProfileChordTop = "SHS150*150*6";
-        public string ProfileChordBottom = "SHS150*150*6";
-        public string ProfileFrameVertical = "SHS100*100*5";
-        public string ProfileFrameHorizontal = "SHS100*100*5";
-        public string ProfileEndVertical = "";
-        public string ProfileEndHorizontal = "";
-        public string ProfileDiagonalWall = "SHS80*80*4";
-        public string ProfileDiagonalRoofFloor = "SHS80*80*4";
-
-        private TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial, txtClass, txtPrefix, txtStartNumber;
-        private ComboBox cmbHeightPos;
-        private ComboBox cmbChordTop, cmbChordBot, cmbFrameVert, cmbFrameHoriz;
-        private ComboBox cmbEndVert, cmbEndHoriz, cmbDiagWall, cmbDiagRF;
-
-        public PutkisiltaDialog()
-        {
-            this.Text = "Putkisilta";
-            this.Size = new Drawing.Size(420, 700);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-
-            string[] profiles = new string[] { "SHS80*80*4", "SHS100*100*5", "SHS120*120*5", "SHS150*150*6", "SHS200*200*8", "RHS100*50*4", "RHS150*100*6", "RHS200*100*6" };
-
-            int y = 15;
-            AddLabel("Leveys (mm):", 12, y);
-            txtWidth = AddTextBox("1200", 160, y); y += 28;
-            AddLabel("Korkeus (mm):", 12, y);
-            txtHeight = AddTextBox("1800", 160, y); y += 28;
-            AddLabel("Max kehäjako (mm):", 12, y);
-            txtMaxSpacing = AddTextBox("3000", 160, y); y += 28;
-            AddLabel("Materiaali:", 12, y);
-            txtMaterial = AddTextBox("S355J2", 160, y); y += 28;
-            AddLabel("Class:", 12, y);
-            txtClass = AddTextBox("1", 160, y); y += 28;
-            AddLabel("Prefix:", 12, y);
-            txtPrefix = AddTextBox("P", 160, y); y += 28;
-            AddLabel("Start number:", 12, y);
-            txtStartNumber = AddTextBox("1", 160, y); y += 28;
-            AddLabel("Korkeusasema:", 12, y);
-            cmbHeightPos = new ComboBox();
-            cmbHeightPos.Location = new Drawing.Point(160, y);
-            cmbHeightPos.Size = new Drawing.Size(160, 21);
-            cmbHeightPos.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbHeightPos.Items.Add("Keskikorkeus");
-            cmbHeightPos.Items.Add("Alapinta");
-            cmbHeightPos.Items.Add("Yläpinta");
-            if (cmbHeightPos.Items.Count > 0) cmbHeightPos.SelectedIndex = 0;
-            this.Controls.Add(cmbHeightPos); y += 35;
-
-            AddLabel("Yläpaarre:", 12, y);
-            cmbChordTop = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Alapaarre:", 12, y);
-            cmbChordBot = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Kehä pysty:", 12, y);
-            cmbFrameVert = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Kehä vaaka:", 12, y);
-            cmbFrameHoriz = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Pääty pysty:", 12, y);
-            cmbEndVert = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Pääty vaaka:", 12, y);
-            cmbEndHoriz = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Seinä diag.:", 12, y);
-            cmbDiagWall = AddProfileCombo(160, y, profiles); y += 28;
-            AddLabel("Katto/lattia diag.:", 12, y);
-            cmbDiagRF = AddProfileCombo(160, y, profiles); y += 40;
-
-            Button btnOk = new Button();
-            btnOk.Text = "OK";
-            btnOk.Location = new Drawing.Point(140, y);
-            btnOk.Size = new Drawing.Size(80, 28);
-            btnOk.DialogResult = DialogResult.OK;
-            btnOk.Click += new EventHandler(btnOk_Click);
-
-            Button btnCancel = new Button();
-            btnCancel.Text = "Peruuta";
-            btnCancel.Location = new Drawing.Point(230, y);
-            btnCancel.Size = new Drawing.Size(80, 28);
-            btnCancel.DialogResult = DialogResult.Cancel;
-
-            this.Controls.Add(btnOk);
-            this.Controls.Add(btnCancel);
-            this.AcceptButton = btnOk;
-            this.CancelButton = btnCancel;
-        }
-
-        void btnOk_Click(object sender, EventArgs e)
-        {
-            ReadValues();
-        }
-
-        void AddLabel(string text, int x, int y)
-        {
-            Label lbl = new Label();
-            lbl.Text = text ?? "";
-            lbl.Location = new Drawing.Point(x, y + 3);
-            lbl.AutoSize = true;
-            this.Controls.Add(lbl);
-        }
-
-        TextBox AddTextBox(string text, int x, int y)
-        {
-            TextBox tb = new TextBox();
-            tb.Text = text ?? "";
-            tb.Location = new Drawing.Point(x, y);
-            tb.Size = new Drawing.Size(100, 20);
-            this.Controls.Add(tb);
-            return tb;
-        }
-
-        ComboBox AddProfileCombo(int x, int y, string[] items)
-        {
-            ComboBox cmb = new ComboBox();
-            cmb.Location = new Drawing.Point(x, y);
-            cmb.Size = new Drawing.Size(200, 21);
-            cmb.DropDownStyle = ComboBoxStyle.DropDown;
-            if (items != null)
-            {
-                for (int i = 0; i < items.Length; i++)
-                {
-                    if (!string.IsNullOrEmpty(items[i]))
-                        cmb.Items.Add(items[i]);
-                }
-            }
-            if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
-            this.Controls.Add(cmb);
-            return cmb;
-        }
-
-        void ReadValues()
-        {
-            double w;
-            if (!double.TryParse(txtWidth.Text, out w) || w <= 0) w = 1200;
-            WidthValue = w;
-
-            double h;
-            if (!double.TryParse(txtHeight.Text, out h) || h <= 0) h = 1800;
-            HeightValue = h;
-
-            double ms;
-            if (!double.TryParse(txtMaxSpacing.Text, out ms) || ms <= 0) ms = 3000;
-            MaxSpacingValue = ms;
-
-            MaterialValue = string.IsNullOrEmpty(txtMaterial.Text) ? "S355J2" : txtMaterial.Text;
-            ClassValue = string.IsNullOrEmpty(txtClass.Text) ? "1" : txtClass.Text;
-            PrefixValue = string.IsNullOrEmpty(txtPrefix.Text) ? "P" : txtPrefix.Text;
-
-            int sn;
-            if (!int.TryParse(txtStartNumber.Text, out sn) || sn <= 0) sn = 1;
-            StartNumberValue = sn;
-
-            HeightPositionValue = cmbHeightPos.SelectedIndex;
-
-            ProfileChordTop = string.IsNullOrEmpty(cmbChordTop.Text) ? "SHS150*150*6" : cmbChordTop.Text;
-            ProfileChordBottom = string.IsNullOrEmpty(cmbChordBot.Text) ? "SHS150*150*6" : cmbChordBot.Text;
-            ProfileFrameVertical = string.IsNullOrEmpty(cmbFrameVert.Text) ? "SHS100*100*5" : cmbFrameVert.Text;
-            ProfileFrameHorizontal = string.IsNullOrEmpty(cmbFrameHoriz.Text) ? "SHS100*100*5" : cmbFrameHoriz.Text;
-            ProfileEndVertical = cmbEndVert.Text;
-            ProfileEndHorizontal = cmbEndHoriz.Text;
-            ProfileDiagonalWall = string.IsNullOrEmpty(cmbDiagWall.Text) ? "SHS80*80*4" : cmbDiagWall.Text;
-            ProfileDiagonalRoofFloor = string.IsNullOrEmpty(cmbDiagRF.Text) ? "SHS80*80*4" : cmbDiagRF.Text;
         }
     }
 }
