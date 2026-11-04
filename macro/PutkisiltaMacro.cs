@@ -1,6 +1,6 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin
-// Yksinkertainen dialogi, joka toimii Teklan makrokääntäjässä
+// Parametrit ovat alla. Muokkaa niitä tarvittaessa ja aja makro.
 // Kopioi mallikansion macros\modeling\ -kansioon
 
 using System;
@@ -23,48 +23,24 @@ namespace UserMacros
                 return;
             }
 
-            // Yksinkertainen dialogi
-            string widthStr = Microsoft.VisualBasic.Interaction.InputBox("Leveys (mm):", "Putkisilta", "1200");
-            string heightStr = Microsoft.VisualBasic.Interaction.InputBox("Korkeus (mm):", "Putkisilta", "1800");
-            string maxSpacingStr = Microsoft.VisualBasic.Interaction.InputBox("Max kehäjako (mm):", "Putkisilta", "3000");
-            string material = Microsoft.VisualBasic.Interaction.InputBox("Materiaali:", "Putkisilta", "S355J2");
-            string classStr = Microsoft.VisualBasic.Interaction.InputBox("Class:", "Putkisilta", "1");
-            string prefix = Microsoft.VisualBasic.Interaction.InputBox("Prefix:", "Putkisilta", "P");
-            string startNumberStr = Microsoft.VisualBasic.Interaction.InputBox("Start number:", "Putkisilta", "1");
-            string chordTop = Microsoft.VisualBasic.Interaction.InputBox("Yläpaarre:", "Putkisilta", "SHS150*150*6");
-            string chordBot = Microsoft.VisualBasic.Interaction.InputBox("Alapaarre:", "Putkisilta", "SHS150*150*6");
-            string frameVert = Microsoft.VisualBasic.Interaction.InputBox("Kehä pysty:", "Putkisilta", "SHS100*100*5");
-            string frameHoriz = Microsoft.VisualBasic.Interaction.InputBox("Kehä vaaka:", "Putkisilta", "SHS100*100*5");
-            string endVert = Microsoft.VisualBasic.Interaction.InputBox("Pääty pysty (tyhjä = sama):", "Putkisilta", "");
-            string endHoriz = Microsoft.VisualBasic.Interaction.InputBox("Pääty vaaka (tyhjä = sama):", "Putkisilta", "");
-            string diagWall = Microsoft.VisualBasic.Interaction.InputBox("Seinä diagonaali:", "Putkisilta", "SHS80*80*4");
-            string diagRF = Microsoft.VisualBasic.Interaction.InputBox("Katto/lattia diagonaali:", "Putkisilta", "SHS80*80*4");
-
+            // ========== PARAMETRIT ==========
             double width = 1200;
-            double.TryParse(widthStr, out width);
-            if (width <= 0) width = 1200;
-
             double height = 1800;
-            double.TryParse(heightStr, out height);
-            if (height <= 0) height = 1800;
-
             double maxSpacing = 3000;
-            double.TryParse(maxSpacingStr, out maxSpacing);
-            if (maxSpacing <= 0) maxSpacing = 3000;
-
+            string material = "S355J2";
+            string classStr = "1";
+            string prefix = "P";
             int startNumber = 1;
-            int.TryParse(startNumberStr, out startNumber);
-            if (startNumber <= 0) startNumber = 1;
 
-            if (string.IsNullOrEmpty(material)) material = "S355J2";
-            if (string.IsNullOrEmpty(classStr)) classStr = "1";
-            if (string.IsNullOrEmpty(prefix)) prefix = "P";
-            if (string.IsNullOrEmpty(chordTop)) chordTop = "SHS150*150*6";
-            if (string.IsNullOrEmpty(chordBot)) chordBot = "SHS150*150*6";
-            if (string.IsNullOrEmpty(frameVert)) frameVert = "SHS100*100*5";
-            if (string.IsNullOrEmpty(frameHoriz)) frameHoriz = "SHS100*100*5";
-            if (string.IsNullOrEmpty(diagWall)) diagWall = "SHS80*80*4";
-            if (string.IsNullOrEmpty(diagRF)) diagRF = "SHS80*80*4";
+            string chordTop = "SHS150*150*6";
+            string chordBot = "SHS150*150*6";
+            string frameVert = "SHS100*100*5";
+            string frameHoriz = "SHS100*100*5";
+            string endVert = "";          // tyhjä = sama kuin frameVert
+            string endHoriz = "";         // tyhjä = sama kuin frameHoriz
+            string diagWall = "SHS80*80*4";
+            string diagRF = "SHS80*80*4";
+            // =================================
 
             Picker picker = new Picker();
             TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
