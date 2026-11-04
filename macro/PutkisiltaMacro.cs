@@ -363,7 +363,11 @@ namespace Tekla.Technology.Akit.UserScript
             }
             beam.Position.Depth = Position.DepthEnum.MIDDLE;
             beam.Position.Plane = Position.PlaneEnum.MIDDLE;
-            beam.Insert();
+            
+            if (!beam.Insert())
+            {
+                MessageBox.Show("Palkin luonti epäonnistui:\nProfiili: " + profile + "\nMateriaali: " + material);
+            }
         }
     }
 }
