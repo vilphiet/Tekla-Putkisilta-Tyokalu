@@ -193,7 +193,11 @@ namespace UserMacros
                     TSG.Point rightStart = positions[i] + right * halfW + up * zOff;
                     TSG.Point leftEnd = positions[i + 1] + right * (-halfW) + up * zOff;
                     TSG.Point rightEnd = positions[i + 1] + right * halfW + up * zOff;
-                    TSG.Point midPoint = (positions[i] + positions[i + 1]) * 0.5 + up * zOff;
+                    TSG.Point midPoint = new TSG.Point(
+                        (positions[i].X + positions[i + 1].X) * 0.5,
+                        (positions[i].Y + positions[i + 1].Y) * 0.5,
+                        (positions[i].Z + positions[i + 1].Z) * 0.5
+                    ) + up * zOff;
 
                     CreateBeam(model, leftStart, midPoint, prof, mat, classStr, prefix, startNumber);
                     CreateBeam(model, rightStart, midPoint, prof, mat, classStr, prefix, startNumber);
