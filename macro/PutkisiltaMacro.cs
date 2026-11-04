@@ -1,6 +1,9 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin + dialogi parametreille
 // Kopioi mallikansion macros\modeling\ -kansioon ja aja Applications & components -luettelosta
+//
+// Annettu leveys ja korkeus = vapaa sisämitta (sisänurkkiin).
+// Kehät ja diagonaalit liittyvät paarteiden keskilinjoihin.
 
 using System;
 using System.Collections.Generic;
@@ -78,11 +81,11 @@ namespace UserMacros
                     bool isEnd = i == 0 || i == framePositions.Count - 1;
                     string vProf = isEnd && !string.IsNullOrEmpty(endVert) ? endVert : frameVert;
                     string hProf = isEnd && !string.IsNullOrEmpty(endHoriz) ? endHoriz : frameHoriz;
-                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material);
+                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, chordTop, chordBot);
                 }
 
-                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material);
-                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material);
+                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, chordTop, chordBot);
+                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, chordTop, chordBot);
 
                 model.CommitChanges();
                 MessageBox.Show($"Putkisilta luotu.\nPituus: {length:F0} mm\nKehiä: {bayCount + 1}\nJako: {actualSpacing:F0} mm");
@@ -91,33 +94,50 @@ namespace UserMacros
 
         static void CreateChords(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string topProf, string botProf, string mat)
         {
+            double topHalf = GetProfileSize(topProf) / 2.0;
+            double botHalf = GetProfileSize(botProf) / 2.0;
             double halfW = width / 2.0;
-            double halfH = height / 2.0;
-            var offsets = new[] {
-                new Point( halfW, 0,  halfH),
-                new Point(-halfW, 0,  halfH),
-                new Point( halfW, 0, -halfH),
-                new Point(-halfW, 0, -halfH)
-            };
-            string[] profiles = { topProf, topProf, botProf, botProf };
+            double halfHTop = height / 2.0 + topHalf;
+            double halfHBot = height / 2.0 + botHalf;
 
-            for (int c = 0; c < 4; c++)
-                for (int i = 0; i < positions.Count - 1; i++)
-                {
-                    Point start = positions[i] + right * offsets[c].X + up * offsets[c].Z;
-                    Point end = positions[i + 1] + right * offsets[c].X + up * offsets[c].Z;
-                    CreateBeam(model, start, end, profiles[c], mat, "1");
-                }
+            CreateChordPair(model, positions, right, up, halfW + topHalf, halfHTop, topProf, mat);
+            CreateChordPair(model, positions, right, up, halfW + botHalf, -halfHBot, botProf, mat);
         }
 
-        static void CreateFrame(Model model, Point center, Vector right, Vector up, double width, double height, string vertProf, string horizProf, string mat)
+        static void CreateChordPair(Model model, List<Point> positions, Vector right, Vector up, double xOff, double zOff, string profile, string mat)
         {
-            double halfW = width / 2.0;
-            double halfH = height / 2.0;
-            Point tl = center + right * halfW + up * halfH;
-            Point tr = center + right * (-halfW) + up * halfH;
-            Point bl = center + right * halfW + up * (-halfH);
-            Point br = center + right * (-halfW) + up * (-halfH);
+            for (int i = 0; i < positions.Count - 1; i++)
+            {
+                Point startL = positions[i] + right * (-xOff) + up * zOff;
+                Point endL   = positions[i + 1] + right * (-xOff) + up * zOff;
+                Point startR = positions[i] + right * xOff + up * zOff;
+                Point endR   = positions[i + 1] + right * xOff + up * zOff;
+                CreateBeam(model, startL, endL, profile, mat, "1");
+                CreateBeam(model, startR, endR, profile, mat, "1");
+            }
+        }
+
+        static double GetProfileSize(string profile)
+        {
+            if (string.IsNullOrEmpty(profile)) return 100;
+            var parts = profile.ToUpper().Replace("SHS", "").Replace("RHS", "").Split('*', 'X', 'x');
+            if (parts.Length >= 1 && double.TryParse(parts[0].Trim(), out double size))
+                return size;
+            return 100;
+        }
+
+        static void CreateFrame(Model model, Point center, Vector right, Vector up, double width, double height, string vertProf, string horizProf, string mat, string topProf, string botProf)
+        {
+            double topHalf = GetProfileSize(topProf) / 2.0;
+            double botHalf = GetProfileSize(botProf) / 2.0;
+            double halfW = width / 2.0 + Math.Max(topHalf, botHalf);
+            double halfHTop = height / 2.0 + topHalf;
+            double halfHBot = height / 2.0 + botHalf;
+
+            Point tl = center + right * halfW + up * halfHTop;
+            Point tr = center + right * (-halfW) + up * halfHTop;
+            Point bl = center + right * halfW + up * (-halfHBot);
+            Point br = center + right * (-halfW) + up * (-halfHBot);
 
             CreateBeam(model, bl, tl, vertProf, mat, "2");
             CreateBeam(model, br, tr, vertProf, mat, "2");
@@ -125,10 +145,13 @@ namespace UserMacros
             CreateBeam(model, bl, br, horizProf, mat, "3");
         }
 
-        static void CreateWallDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat)
+        static void CreateWallDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string topProf, string botProf)
         {
-            double halfW = width / 2.0;
-            double halfH = height / 2.0;
+            double topHalf = GetProfileSize(topProf) / 2.0;
+            double botHalf = GetProfileSize(botProf) / 2.0;
+            double halfW = width / 2.0 + Math.Max(topHalf, botHalf);
+            double halfHTop = height / 2.0 + topHalf;
+            double halfHBot = height / 2.0 + botHalf;
             int mid = positions.Count / 2;
 
             for (int side = 0; side < 2; side++)
@@ -136,10 +159,10 @@ namespace UserMacros
                 double xOff = (side == 0) ? halfW : -halfW;
                 for (int i = 0; i < positions.Count - 1; i++)
                 {
-                    Point a = positions[i] + right * xOff + up * (-halfH);
-                    Point b = positions[i + 1] + right * xOff + up * halfH;
-                    Point c = positions[i] + right * xOff + up * halfH;
-                    Point d = positions[i + 1] + right * xOff + up * (-halfH);
+                    Point a = positions[i] + right * xOff + up * (-halfHBot);
+                    Point b = positions[i + 1] + right * xOff + up * halfHTop;
+                    Point c = positions[i] + right * xOff + up * halfHTop;
+                    Point d = positions[i + 1] + right * xOff + up * (-halfHBot);
 
                     if (i < mid)
                         CreateBeam(model, a, b, prof, mat, "4");
@@ -149,12 +172,16 @@ namespace UserMacros
             }
         }
 
-        static void CreateRoofFloorDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat)
+        static void CreateRoofFloorDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string topProf, string botProf)
         {
-            double halfW = width / 2.0;
-            double halfH = height / 2.0;
-            double[] zOffs = { halfH, -halfH };
+            double topHalf = GetProfileSize(topProf) / 2.0;
+            double botHalf = GetProfileSize(botProf) / 2.0;
+            double halfW = width / 2.0 + Math.Max(topHalf, botHalf);
 
+            double zTop = height / 2.0 + topHalf;
+            double zBot = -(height / 2.0 + botHalf);
+
+            double[] zOffs = { zTop, zBot };
             foreach (double zOff in zOffs)
             {
                 for (int i = 0; i < positions.Count - 1; i++)
