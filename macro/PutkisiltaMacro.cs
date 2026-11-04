@@ -52,16 +52,16 @@ namespace Tekla.Technology.Akit.UserScript
             txtMaxSpacing = AddTextBox("3000", inputX, y, inputW); y += 40;
 
             AddLabel("Yläpaarre:", 15, y, labelW);
-            cmbChordTop = AddCombo(inputX, y, inputW, "SHS150*150*6"); y += 30;
+            cmbChordTop = AddCombo(inputX, y, inputW, "CFRHS150X150X6"); y += 30;
 
             AddLabel("Alapaarre:", 15, y, labelW);
-            cmbChordBot = AddCombo(inputX, y, inputW, "SHS150*150*6"); y += 30;
+            cmbChordBot = AddCombo(inputX, y, inputW, "CFRHS150X150X6"); y += 30;
 
             AddLabel("Kehä pysty:", 15, y, labelW);
-            cmbFrameVert = AddCombo(inputX, y, inputW, "SHS100*100*5"); y += 30;
+            cmbFrameVert = AddCombo(inputX, y, inputW, "CFRHS100X100X5"); y += 30;
 
             AddLabel("Kehä vaaka:", 15, y, labelW);
-            cmbFrameHoriz = AddCombo(inputX, y, inputW, "SHS100*100*5"); y += 30;
+            cmbFrameHoriz = AddCombo(inputX, y, inputW, "CFRHS100X100X5"); y += 30;
 
             AddLabel("Pääty pysty (tyhjä=sama):", 15, y, labelW);
             cmbEndVert = AddCombo(inputX, y, inputW, ""); y += 30;
@@ -70,10 +70,10 @@ namespace Tekla.Technology.Akit.UserScript
             cmbEndHoriz = AddCombo(inputX, y, inputW, ""); y += 30;
 
             AddLabel("Seinädiagonaali:", 15, y, labelW);
-            cmbDiagWall = AddCombo(inputX, y, inputW, "SHS80*80*4"); y += 30;
+            cmbDiagWall = AddCombo(inputX, y, inputW, "CFRHS80X80X4"); y += 30;
 
             AddLabel("Katto/lattia diagonaali:", 15, y, labelW);
-            cmbDiagRF = AddCombo(inputX, y, inputW, "SHS80*80*4"); y += 40;
+            cmbDiagRF = AddCombo(inputX, y, inputW, "CFRHS80X80X4"); y += 40;
 
             AddLabel("Materiaali:", 15, y, labelW);
             txtMaterial = AddTextBox("S355J2", inputX, y, inputW); y += 30;
@@ -135,9 +135,9 @@ namespace Tekla.Technology.Akit.UserScript
             cb.Width = w;
             cb.DropDownStyle = ComboBoxStyle.DropDown;
             cb.Items.AddRange(new object[] {
-                "SHS60*60*3", "SHS80*80*4", "SHS100*100*5", "SHS120*120*5",
-                "SHS150*150*6", "SHS200*200*8", "RHS100*50*4", "RHS150*100*6",
-                "RHS200*100*6", ""
+                "CFRHS60X60X3", "CFRHS80X80X4", "CFRHS100X100X5", "CFRHS120X120X5",
+                "CFRHS150X150X6", "CFRHS200X200X8", "CFRHS100X50X4", "CFRHS150X100X6",
+                "CFRHS200X100X6", ""
             });
             if (!string.IsNullOrEmpty(defaultVal))
                 cb.Text = defaultVal;
@@ -261,7 +261,7 @@ namespace Tekla.Technology.Akit.UserScript
         static double GetProfileSize(string profile)
         {
             if (string.IsNullOrEmpty(profile)) return 100;
-            string cleaned = profile.ToUpper().Replace("SHS", "").Replace("RHS", "");
+            string cleaned = profile.ToUpper().Replace("CFRHS", "").Replace("SHS", "").Replace("RHS", "");
             string[] parts = cleaned.Split(new char[] { '*', 'X', 'x' });
             double size;
             if (parts.Length >= 1 && double.TryParse(parts[0].Trim(), out size))
