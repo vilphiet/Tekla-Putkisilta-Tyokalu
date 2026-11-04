@@ -1,6 +1,6 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin
-// Korjattu: N-ristikko seinille, KT-ristikko katolle/lattialle, yhtenäiset paarteet
+// Korjattu: N-ristikko seinille (laskeva alku), KT-ristikko katolle/lattialle (ei X), yhtenäiset paarteet
 // Profiilit kirjoitettavissa (katalogista), Part + Assembly prefix
 // Kopioi mallikansion macros\modeling\ -kansioon ja tallenna ANSI-muodossa
 
@@ -210,10 +210,10 @@ namespace Tekla.Technology.Akit.UserScript
                     CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
                 }
 
-                // Wall diagonals - N-truss
+                // Wall diagonals - N-truss (starts falling)
                 CreateWallDiagonalsN(model, framePositions, right, up, width, height, diagWall, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
 
-                // Roof/floor diagonals - KT-truss
+                // Roof/floor diagonals - KT-truss (no X)
                 CreateRoofFloorDiagonalsKT(model, framePositions, right, up, width, height, diagRF, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
 
                 model.CommitChanges();
@@ -285,7 +285,7 @@ namespace Tekla.Technology.Akit.UserScript
             CreateBeam(model, bl, br, horizProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
         }
 
-        // N-truss walls: direction changes at midpoint
+        // N-truss walls: direction changes at midpoint, starts with falling diagonal
         static void CreateWallDiagonalsN(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
@@ -305,15 +305,16 @@ namespace Tekla.Technology.Akit.UserScript
                     TSG.Point topStart = positions[i] + right * xOff + up * halfHTop;
                     TSG.Point botEnd = positions[i + 1] + right * xOff + up * (-halfHBot);
 
+                    // Reversed: start with falling diagonal
                     if (i < mid)
-                        CreateBeam(model, botStart, topEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
-                    else
                         CreateBeam(model, topStart, botEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    else
+                        CreateBeam(model, botStart, topEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                 }
             }
         }
 
-        // KT-truss roof/floor: diagonals meet at bay center
+        // KT-truss roof/floor: diagonals meet at bay center (no X)
         static void CreateRoofFloorDiagonalsKT(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
@@ -339,10 +340,9 @@ namespace Tekla.Technology.Akit.UserScript
                         (positions[i].Z + positions[i + 1].Z) * 0.5
                     ) + up * zOff;
 
+                    // Only one direction: from ends to center (KT, not X)
                     CreateBeam(model, leftStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                     CreateBeam(model, rightStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
-                    CreateBeam(model, midPoint, leftEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
-                    CreateBeam(model, midPoint, rightEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                 }
             }
         }
