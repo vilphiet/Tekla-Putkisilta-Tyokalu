@@ -1,6 +1,6 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin
-// Korjattu: N-ristikko seinille (laskeva alku), KT-ristikko katolle/lattialle (ei X), yhtenäiset paarteet
+// Korjattu: N-ristikko seinille (laskeva alku), KT-ristikko katolle/lattialle (V-kuvio), yhtenäiset paarteet
 // Profiilit kirjoitettavissa (katalogista), Part + Assembly prefix
 // Kopioi mallikansion macros\modeling\ -kansioon ja tallenna ANSI-muodossa
 
@@ -213,7 +213,7 @@ namespace Tekla.Technology.Akit.UserScript
                 // Wall diagonals - N-truss (starts falling)
                 CreateWallDiagonalsN(model, framePositions, right, up, width, height, diagWall, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
 
-                // Roof/floor diagonals - KT-truss (no X)
+                // Roof/floor diagonals - KT-truss (V pattern)
                 CreateRoofFloorDiagonalsKT(model, framePositions, right, up, width, height, diagRF, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
 
                 model.CommitChanges();
@@ -314,7 +314,7 @@ namespace Tekla.Technology.Akit.UserScript
             }
         }
 
-        // KT-truss roof/floor: diagonals meet at bay center (no X)
+        // KT-truss roof/floor: diagonals form V shapes in each bay
         static void CreateRoofFloorDiagonalsKT(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
@@ -330,19 +330,23 @@ namespace Tekla.Technology.Akit.UserScript
                 double zOff = zOffs[z];
                 for (int i = 0; i < positions.Count - 1; i++)
                 {
-                    TSG.Point leftStart = positions[i] + right * (-halfW) + up * zOff;
-                    TSG.Point rightStart = positions[i] + right * halfW + up * zOff;
-                    TSG.Point leftEnd = positions[i + 1] + right * (-halfW) + up * zOff;
-                    TSG.Point rightEnd = positions[i + 1] + right * halfW + up * zOff;
-                    TSG.Point midPoint = new TSG.Point(
+                    TSG.Point left = positions[i] + right * (-halfW) + up * zOff;
+                    TSG.Point rightPt = positions[i] + right * halfW + up * zOff;
+                    TSG.Point leftNext = positions[i + 1] + right * (-halfW) + up * zOff;
+                    TSG.Point rightNext = positions[i + 1] + right * halfW + up * zOff;
+
+                    // Midpoint of bay
+                    TSG.Point mid = new TSG.Point(
                         (positions[i].X + positions[i + 1].X) * 0.5,
                         (positions[i].Y + positions[i + 1].Y) * 0.5,
                         (positions[i].Z + positions[i + 1].Z) * 0.5
                     ) + up * zOff;
 
-                    // Only one direction: from ends to center (KT, not X)
-                    CreateBeam(model, leftStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
-                    CreateBeam(model, rightStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    // V shape: from both ends of current frame to mid, and from mid to next frame
+                    CreateBeam(model, left, mid, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, rightPt, mid, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, mid, leftNext, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, mid, rightNext, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                 }
             }
         }
