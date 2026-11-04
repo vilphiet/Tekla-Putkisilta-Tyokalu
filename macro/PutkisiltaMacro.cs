@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Tekla.Structures.Model;
-using Tekla.Structures.Geometry3d;
 using Tekla.Structures.Model.UI;
+using TSG = Tekla.Structures.Geometry3d;
 using Drawing = System.Drawing;
 
 namespace UserMacros
@@ -47,22 +47,22 @@ namespace UserMacros
             string diagRF = form.ProfileDiagonalRoofFloor;
 
             Picker picker = new Picker();
-            Point p1 = picker.PickPoint("Valitse sillan alkupiste");
-            Point p2 = picker.PickPoint("Valitse sillan loppupiste");
+            TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
+            TSG.Point p2 = picker.PickPoint("Valitse sillan loppupiste");
             if (p1 == null || p2 == null) return;
 
             double zShift = 0;
             if (heightPos == 1) zShift = -height / 2.0;
             else if (heightPos == 2) zShift = height / 2.0;
 
-            Vector direction = new Vector(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+            TSG.Vector direction = new TSG.Vector(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
             double length = direction.GetLength();
             if (length < 100) return;
 
             direction.Normalize();
-            Vector up = new Vector(0, 0, 1);
-            Vector right = direction.Cross(up);
-            if (right.GetLength() < 0.1) right = new Vector(1, 0, 0);
+            TSG.Vector up = new TSG.Vector(0, 0, 1);
+            TSG.Vector right = direction.Cross(up);
+            if (right.GetLength() < 0.1) right = new TSG.Vector(1, 0, 0);
             right.Normalize();
 
             p1 = p1 + up * zShift;
@@ -71,7 +71,7 @@ namespace UserMacros
             int bayCount = Math.Max(1, (int)Math.Ceiling(length / maxSpacing));
             double actualSpacing = length / bayCount;
 
-            List<Point> framePositions = new List<Point>();
+            List<TSG.Point> framePositions = new List<TSG.Point>();
             for (int i = 0; i <= bayCount; i++)
                 framePositions.Add(p1 + direction * (i * actualSpacing));
 
@@ -92,7 +92,7 @@ namespace UserMacros
             MessageBox.Show(msg);
         }
 
-        static void CreateChords(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string prefix, int startNumber)
+        static void CreateChords(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string prefix, int startNumber)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -104,14 +104,14 @@ namespace UserMacros
             CreateChordPair(model, positions, right, up, halfW + botHalf, -halfHBot, botProf, mat, classStr, prefix, startNumber);
         }
 
-        static void CreateChordPair(Model model, List<Point> positions, Vector right, Vector up, double xOff, double zOff, string profile, string mat, string classStr, string prefix, int startNumber)
+        static void CreateChordPair(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double xOff, double zOff, string profile, string mat, string classStr, string prefix, int startNumber)
         {
             for (int i = 0; i < positions.Count - 1; i++)
             {
-                Point startL = positions[i] + right * (-xOff) + up * zOff;
-                Point endL = positions[i + 1] + right * (-xOff) + up * zOff;
-                Point startR = positions[i] + right * xOff + up * zOff;
-                Point endR = positions[i + 1] + right * xOff + up * zOff;
+                TSG.Point startL = positions[i] + right * (-xOff) + up * zOff;
+                TSG.Point endL = positions[i + 1] + right * (-xOff) + up * zOff;
+                TSG.Point startR = positions[i] + right * xOff + up * zOff;
+                TSG.Point endR = positions[i + 1] + right * xOff + up * zOff;
                 CreateBeam(model, startL, endL, profile, mat, classStr, prefix, startNumber);
                 CreateBeam(model, startR, endR, profile, mat, classStr, prefix, startNumber);
             }
@@ -128,7 +128,7 @@ namespace UserMacros
             return 100;
         }
 
-        static void CreateFrame(Model model, Point center, Vector right, Vector up, double width, double height, string vertProf, string horizProf, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        static void CreateFrame(Model model, TSG.Point center, TSG.Vector right, TSG.Vector up, double width, double height, string vertProf, string horizProf, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -136,10 +136,10 @@ namespace UserMacros
             double halfHTop = height / 2.0 + topHalf;
             double halfHBot = height / 2.0 + botHalf;
 
-            Point tl = center + right * halfW + up * halfHTop;
-            Point tr = center + right * (-halfW) + up * halfHTop;
-            Point bl = center + right * halfW + up * (-halfHBot);
-            Point br = center + right * (-halfW) + up * (-halfHBot);
+            TSG.Point tl = center + right * halfW + up * halfHTop;
+            TSG.Point tr = center + right * (-halfW) + up * halfHTop;
+            TSG.Point bl = center + right * halfW + up * (-halfHBot);
+            TSG.Point br = center + right * (-halfW) + up * (-halfHBot);
 
             CreateBeam(model, bl, tl, vertProf, mat, classStr, prefix, startNumber);
             CreateBeam(model, br, tr, vertProf, mat, classStr, prefix, startNumber);
@@ -147,7 +147,7 @@ namespace UserMacros
             CreateBeam(model, bl, br, horizProf, mat, classStr, prefix, startNumber);
         }
 
-        static void CreateWallDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        static void CreateWallDiagonals(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -161,10 +161,10 @@ namespace UserMacros
                 double xOff = (side == 0) ? halfW : -halfW;
                 for (int i = 0; i < positions.Count - 1; i++)
                 {
-                    Point a = positions[i] + right * xOff + up * (-halfHBot);
-                    Point b = positions[i + 1] + right * xOff + up * halfHTop;
-                    Point c = positions[i] + right * xOff + up * halfHTop;
-                    Point d = positions[i + 1] + right * xOff + up * (-halfHBot);
+                    TSG.Point a = positions[i] + right * xOff + up * (-halfHBot);
+                    TSG.Point b = positions[i + 1] + right * xOff + up * halfHTop;
+                    TSG.Point c = positions[i] + right * xOff + up * halfHTop;
+                    TSG.Point d = positions[i + 1] + right * xOff + up * (-halfHBot);
 
                     if (i < mid)
                         CreateBeam(model, a, b, prof, mat, classStr, prefix, startNumber);
@@ -174,7 +174,7 @@ namespace UserMacros
             }
         }
 
-        static void CreateRoofFloorDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        static void CreateRoofFloorDiagonals(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -189,11 +189,11 @@ namespace UserMacros
                 double zOff = zOffs[z];
                 for (int i = 0; i < positions.Count - 1; i++)
                 {
-                    Point leftStart = positions[i] + right * (-halfW) + up * zOff;
-                    Point rightStart = positions[i] + right * halfW + up * zOff;
-                    Point leftEnd = positions[i + 1] + right * (-halfW) + up * zOff;
-                    Point rightEnd = positions[i + 1] + right * halfW + up * zOff;
-                    Point midPoint = (positions[i] + positions[i + 1]) * 0.5 + up * zOff;
+                    TSG.Point leftStart = positions[i] + right * (-halfW) + up * zOff;
+                    TSG.Point rightStart = positions[i] + right * halfW + up * zOff;
+                    TSG.Point leftEnd = positions[i + 1] + right * (-halfW) + up * zOff;
+                    TSG.Point rightEnd = positions[i + 1] + right * halfW + up * zOff;
+                    TSG.Point midPoint = (positions[i] + positions[i + 1]) * 0.5 + up * zOff;
 
                     CreateBeam(model, leftStart, midPoint, prof, mat, classStr, prefix, startNumber);
                     CreateBeam(model, rightStart, midPoint, prof, mat, classStr, prefix, startNumber);
@@ -203,7 +203,7 @@ namespace UserMacros
             }
         }
 
-        static void CreateBeam(Model model, Point start, Point end, string profile, string material, string classStr, string prefix, int startNumber)
+        static void CreateBeam(Model model, TSG.Point start, TSG.Point end, string profile, string material, string classStr, string prefix, int startNumber)
         {
             Beam beam = new Beam(start, end);
             beam.Profile.ProfileString = profile;
