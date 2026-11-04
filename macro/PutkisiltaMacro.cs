@@ -10,7 +10,7 @@ using Tekla.Structures.Model;
 using Tekla.Structures.Model.UI;
 using TSG = Tekla.Structures.Geometry3d;
 
-namespace UserMacros
+namespace Tekla.Technology.Akit.UserScript
 {
     public class PutkisiltaMacro
     {
@@ -36,8 +36,8 @@ namespace UserMacros
             string chordBot = "SHS150*150*6";
             string frameVert = "SHS100*100*5";
             string frameHoriz = "SHS100*100*5";
-            string endVert = "";          // tyhjä = sama kuin frameVert
-            string endHoriz = "";         // tyhjä = sama kuin frameHoriz
+            string endVert = "";
+            string endHoriz = "";
             string diagWall = "SHS80*80*4";
             string diagRF = "SHS80*80*4";
             // =================================
