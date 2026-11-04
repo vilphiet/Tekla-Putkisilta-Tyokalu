@@ -1,7 +1,7 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin
-// Parametrit ovat alla. Muokkaa niitä tarvittaessa ja aja makro.
-// Kopioi mallikansion macros\modeling\ -kansioon
+// Dialogi parametreille
+// Kopioi mallikansion macros\modeling\ -kansioon ja tallenna ANSI-muodossa
 
 using System;
 using System.Collections.Generic;
@@ -12,73 +12,225 @@ using TSG = Tekla.Structures.Geometry3d;
 
 namespace Tekla.Technology.Akit.UserScript
 {
-    public class PutkisiltaMacro
+    public class Script
     {
-        public static void Run()
+        public static void Run(Tekla.Technology.Akit.IScript akit)
         {
-            Model model = new Model();
-            if (!model.GetConnectionStatus())
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new PutkisiltaForm());
+        }
+    }
+
+    public class PutkisiltaForm : Form
+    {
+        TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial, txtClass, txtPrefix, txtStartNumber;
+        ComboBox cmbChordTop, cmbChordBot, cmbFrameVert, cmbFrameHoriz, cmbEndVert, cmbEndHoriz, cmbDiagWall, cmbDiagRF;
+        Button btnCreate, btnCancel;
+
+        public PutkisiltaForm()
+        {
+            this.Text = "Putkisilta";
+            this.Width = 480;
+            this.Height = 620;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.MaximizeBox = false;
+
+            int y = 15;
+            int labelW = 160;
+            int inputX = 180;
+            int inputW = 260;
+
+            AddLabel("Leveys (sisämitta mm):", 15, y, labelW);
+            txtWidth = AddTextBox("1200", inputX, y, inputW); y += 30;
+
+            AddLabel("Korkeus (sisämitta mm):", 15, y, labelW);
+            txtHeight = AddTextBox("1800", inputX, y, inputW); y += 30;
+
+            AddLabel("Max kehäjako (mm):", 15, y, labelW);
+            txtMaxSpacing = AddTextBox("3000", inputX, y, inputW); y += 40;
+
+            AddLabel("Yläpaarre:", 15, y, labelW);
+            cmbChordTop = AddCombo(inputX, y, inputW, "SHS150*150*6"); y += 30;
+
+            AddLabel("Alapaarre:", 15, y, labelW);
+            cmbChordBot = AddCombo(inputX, y, inputW, "SHS150*150*6"); y += 30;
+
+            AddLabel("Kehä pysty:", 15, y, labelW);
+            cmbFrameVert = AddCombo(inputX, y, inputW, "SHS100*100*5"); y += 30;
+
+            AddLabel("Kehä vaaka:", 15, y, labelW);
+            cmbFrameHoriz = AddCombo(inputX, y, inputW, "SHS100*100*5"); y += 30;
+
+            AddLabel("Pääty pysty (tyhjä=sama):", 15, y, labelW);
+            cmbEndVert = AddCombo(inputX, y, inputW, ""); y += 30;
+
+            AddLabel("Pääty vaaka (tyhjä=sama):", 15, y, labelW);
+            cmbEndHoriz = AddCombo(inputX, y, inputW, ""); y += 30;
+
+            AddLabel("Seinädiagonaali:", 15, y, labelW);
+            cmbDiagWall = AddCombo(inputX, y, inputW, "SHS80*80*4"); y += 30;
+
+            AddLabel("Katto/lattia diagonaali:", 15, y, labelW);
+            cmbDiagRF = AddCombo(inputX, y, inputW, "SHS80*80*4"); y += 40;
+
+            AddLabel("Materiaali:", 15, y, labelW);
+            txtMaterial = AddTextBox("S355J2", inputX, y, inputW); y += 30;
+
+            AddLabel("Luokka:", 15, y, labelW);
+            txtClass = AddTextBox("1", inputX, y, 80);
+
+            AddLabel("Etuliite:", 250, y, 70);
+            txtPrefix = AddTextBox("P", 320, y, 50);
+
+            AddLabel("Aloitusnro:", 380, y, 70);
+            txtStartNumber = AddTextBox("1", 450, y, 50); y += 50;
+
+            btnCreate = new Button();
+            btnCreate.Text = "Luo silta";
+            btnCreate.Left = 120;
+            btnCreate.Top = y;
+            btnCreate.Width = 100;
+            btnCreate.Click += BtnCreate_Click;
+            this.Controls.Add(btnCreate);
+
+            btnCancel = new Button();
+            btnCancel.Text = "Peruuta";
+            btnCancel.Left = 240;
+            btnCancel.Top = y;
+            btnCancel.Width = 100;
+            btnCancel.Click += (s, e) => this.Close();
+            this.Controls.Add(btnCancel);
+        }
+
+        Label AddLabel(string text, int x, int y, int w)
+        {
+            Label lbl = new Label();
+            lbl.Text = text;
+            lbl.Left = x;
+            lbl.Top = y + 3;
+            lbl.Width = w;
+            lbl.AutoSize = false;
+            this.Controls.Add(lbl);
+            return lbl;
+        }
+
+        TextBox AddTextBox(string text, int x, int y, int w)
+        {
+            TextBox tb = new TextBox();
+            tb.Text = text;
+            tb.Left = x;
+            tb.Top = y;
+            tb.Width = w;
+            this.Controls.Add(tb);
+            return tb;
+        }
+
+        ComboBox AddCombo(int x, int y, int w, string defaultVal)
+        {
+            ComboBox cb = new ComboBox();
+            cb.Left = x;
+            cb.Top = y;
+            cb.Width = w;
+            cb.DropDownStyle = ComboBoxStyle.DropDown;
+            cb.Items.AddRange(new object[] {
+                "SHS60*60*3", "SHS80*80*4", "SHS100*100*5", "SHS120*120*5",
+                "SHS150*150*6", "SHS200*200*8", "RHS100*50*4", "RHS150*100*6",
+                "RHS200*100*6", ""
+            });
+            if (!string.IsNullOrEmpty(defaultVal))
+                cb.Text = defaultVal;
+            this.Controls.Add(cb);
+            return cb;
+        }
+
+        void BtnCreate_Click(object sender, EventArgs e)
+        {
+            try
             {
-                MessageBox.Show("Ei yhteyttä Tekla-malliin.");
-                return;
+                double width = double.Parse(txtWidth.Text);
+                double height = double.Parse(txtHeight.Text);
+                double maxSpacing = double.Parse(txtMaxSpacing.Text);
+                string material = txtMaterial.Text.Trim();
+                string classStr = txtClass.Text.Trim();
+                string prefix = txtPrefix.Text.Trim();
+                int startNumber = int.Parse(txtStartNumber.Text);
+
+                string chordTop = cmbChordTop.Text.Trim();
+                string chordBot = cmbChordBot.Text.Trim();
+                string frameVert = cmbFrameVert.Text.Trim();
+                string frameHoriz = cmbFrameHoriz.Text.Trim();
+                string endVert = cmbEndVert.Text.Trim();
+                string endHoriz = cmbEndHoriz.Text.Trim();
+                string diagWall = cmbDiagWall.Text.Trim();
+                string diagRF = cmbDiagRF.Text.Trim();
+
+                this.Hide();
+
+                Model model = new Model();
+                if (!model.GetConnectionStatus())
+                {
+                    MessageBox.Show("Ei yhteyttä Tekla-malliin.");
+                    this.Show();
+                    return;
+                }
+
+                Picker picker = new Picker();
+                TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
+                TSG.Point p2 = picker.PickPoint("Valitse sillan loppupiste");
+                if (p1 == null || p2 == null)
+                {
+                    this.Show();
+                    return;
+                }
+
+                TSG.Vector direction = new TSG.Vector(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+                double length = direction.GetLength();
+                if (length < 100)
+                {
+                    MessageBox.Show("Pisteet liian lähellä.");
+                    this.Show();
+                    return;
+                }
+
+                direction.Normalize();
+                TSG.Vector up = new TSG.Vector(0, 0, 1);
+                TSG.Vector right = direction.Cross(up);
+                if (right.GetLength() < 0.1) right = new TSG.Vector(1, 0, 0);
+                right.Normalize();
+
+                int bayCount = Math.Max(1, (int)Math.Ceiling(length / maxSpacing));
+                double actualSpacing = length / bayCount;
+
+                List<TSG.Point> framePositions = new List<TSG.Point>();
+                for (int i = 0; i <= bayCount; i++)
+                    framePositions.Add(p1 + direction * (i * actualSpacing));
+
+                CreateChords(model, framePositions, right, up, width, height, chordTop, chordBot, material, classStr, prefix, startNumber);
+                for (int i = 0; i < framePositions.Count; i++)
+                {
+                    bool isEnd = (i == 0 || i == framePositions.Count - 1);
+                    string vProf = (isEnd && !string.IsNullOrEmpty(endVert)) ? endVert : frameVert;
+                    string hProf = (isEnd && !string.IsNullOrEmpty(endHoriz)) ? endHoriz : frameHoriz;
+                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, prefix, startNumber, chordTop, chordBot);
+                }
+
+                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, classStr, prefix, startNumber, chordTop, chordBot);
+                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, classStr, prefix, startNumber, chordTop, chordBot);
+
+                model.CommitChanges();
+
+                string msg = "Putkisilta luotu.\nPituus: " + length.ToString("F0") + " mm\nKehiä: " + (bayCount + 1).ToString() + "\nJako: " + actualSpacing.ToString("F0") + " mm";
+                MessageBox.Show(msg);
+
+                this.Close();
             }
-
-            // ========== PARAMETRIT ==========
-            double width = 1200;
-            double height = 1800;
-            double maxSpacing = 3000;
-            string material = "S355J2";
-            string classStr = "1";
-            string prefix = "P";
-            int startNumber = 1;
-
-            string chordTop = "SHS150*150*6";
-            string chordBot = "SHS150*150*6";
-            string frameVert = "SHS100*100*5";
-            string frameHoriz = "SHS100*100*5";
-            string endVert = "";
-            string endHoriz = "";
-            string diagWall = "SHS80*80*4";
-            string diagRF = "SHS80*80*4";
-            // =================================
-
-            Picker picker = new Picker();
-            TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
-            TSG.Point p2 = picker.PickPoint("Valitse sillan loppupiste");
-            if (p1 == null || p2 == null) return;
-
-            TSG.Vector direction = new TSG.Vector(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
-            double length = direction.GetLength();
-            if (length < 100) return;
-
-            direction.Normalize();
-            TSG.Vector up = new TSG.Vector(0, 0, 1);
-            TSG.Vector right = direction.Cross(up);
-            if (right.GetLength() < 0.1) right = new TSG.Vector(1, 0, 0);
-            right.Normalize();
-
-            int bayCount = Math.Max(1, (int)Math.Ceiling(length / maxSpacing));
-            double actualSpacing = length / bayCount;
-
-            List<TSG.Point> framePositions = new List<TSG.Point>();
-            for (int i = 0; i <= bayCount; i++)
-                framePositions.Add(p1 + direction * (i * actualSpacing));
-
-            CreateChords(model, framePositions, right, up, width, height, chordTop, chordBot, material, classStr, prefix, startNumber);
-            for (int i = 0; i < framePositions.Count; i++)
+            catch (Exception ex)
             {
-                bool isEnd = (i == 0 || i == framePositions.Count - 1);
-                string vProf = (isEnd && !string.IsNullOrEmpty(endVert)) ? endVert : frameVert;
-                string hProf = (isEnd && !string.IsNullOrEmpty(endHoriz)) ? endHoriz : frameHoriz;
-                CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, prefix, startNumber, chordTop, chordBot);
+                MessageBox.Show("Virhe: " + ex.Message);
+                this.Show();
             }
-
-            CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, classStr, prefix, startNumber, chordTop, chordBot);
-            CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, classStr, prefix, startNumber, chordTop, chordBot);
-
-            model.CommitChanges();
-            string msg = "Putkisilta luotu.\nPituus: " + length.ToString("F0") + " mm\nKehiä: " + (bayCount + 1).ToString() + "\nJako: " + actualSpacing.ToString("F0") + " mm";
-            MessageBox.Show(msg);
         }
 
         static void CreateChords(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string prefix, int startNumber)
