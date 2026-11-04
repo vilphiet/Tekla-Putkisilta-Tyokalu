@@ -254,7 +254,7 @@ namespace UserMacros
         public PutkisiltaDialog()
         {
             this.Text = "Putkisilta";
-            this.Size = new Drawing.Size(420, 640);
+            this.Size = new Drawing.Size(420, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -284,34 +284,36 @@ namespace UserMacros
             cmbHeightPos.Items.Add("Keskikorkeus");
             cmbHeightPos.Items.Add("Alapinta");
             cmbHeightPos.Items.Add("Yläpinta");
-            cmbHeightPos.SelectedIndex = 0;
+            if (cmbHeightPos.Items.Count > 0) cmbHeightPos.SelectedIndex = 0;
             this.Controls.Add(cmbHeightPos); y += 35;
 
-            GroupBox grp = new GroupBox();
-            grp.Text = "Profiilit";
-            grp.Location = new Drawing.Point(12, y);
-            grp.Size = new Drawing.Size(380, 300);
-            this.Controls.Add(grp);
-            int gy = 25;
-            cmbChordTop = AddProfileCombo(grp, "Yläpaarre:", gy, profiles); gy += 32;
-            cmbChordBot = AddProfileCombo(grp, "Alapaarre:", gy, profiles); gy += 32;
-            cmbFrameVert = AddProfileCombo(grp, "Kehä pysty:", gy, profiles); gy += 32;
-            cmbFrameHoriz = AddProfileCombo(grp, "Kehä vaaka:", gy, profiles); gy += 32;
-            cmbEndVert = AddProfileCombo(grp, "Pääty pysty:", gy, profiles); gy += 32;
-            cmbEndHoriz = AddProfileCombo(grp, "Pääty vaaka:", gy, profiles); gy += 32;
-            cmbDiagWall = AddProfileCombo(grp, "Seinä diag.:", gy, profiles); gy += 32;
-            cmbDiagRF = AddProfileCombo(grp, "Katto/lattia diag.:", gy, profiles);
+            AddLabel("Yläpaarre:", 12, y);
+            cmbChordTop = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Alapaarre:", 12, y);
+            cmbChordBot = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Kehä pysty:", 12, y);
+            cmbFrameVert = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Kehä vaaka:", 12, y);
+            cmbFrameHoriz = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Pääty pysty:", 12, y);
+            cmbEndVert = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Pääty vaaka:", 12, y);
+            cmbEndHoriz = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Seinä diag.:", 12, y);
+            cmbDiagWall = AddProfileCombo(160, y, profiles); y += 28;
+            AddLabel("Katto/lattia diag.:", 12, y);
+            cmbDiagRF = AddProfileCombo(160, y, profiles); y += 40;
 
             Button btnOk = new Button();
             btnOk.Text = "OK";
-            btnOk.Location = new Drawing.Point(140, 570);
+            btnOk.Location = new Drawing.Point(140, y);
             btnOk.Size = new Drawing.Size(80, 28);
             btnOk.DialogResult = DialogResult.OK;
             btnOk.Click += new EventHandler(btnOk_Click);
 
             Button btnCancel = new Button();
             btnCancel.Text = "Peruuta";
-            btnCancel.Location = new Drawing.Point(230, 570);
+            btnCancel.Location = new Drawing.Point(230, y);
             btnCancel.Size = new Drawing.Size(80, 28);
             btnCancel.DialogResult = DialogResult.Cancel;
 
@@ -329,7 +331,7 @@ namespace UserMacros
         void AddLabel(string text, int x, int y)
         {
             Label lbl = new Label();
-            lbl.Text = text;
+            lbl.Text = text ?? "";
             lbl.Location = new Drawing.Point(x, y + 3);
             lbl.AutoSize = true;
             this.Controls.Add(lbl);
@@ -338,29 +340,29 @@ namespace UserMacros
         TextBox AddTextBox(string text, int x, int y)
         {
             TextBox tb = new TextBox();
-            tb.Text = text;
+            tb.Text = text ?? "";
             tb.Location = new Drawing.Point(x, y);
             tb.Size = new Drawing.Size(100, 20);
             this.Controls.Add(tb);
             return tb;
         }
 
-        ComboBox AddProfileCombo(GroupBox parent, string label, int y, string[] items)
+        ComboBox AddProfileCombo(int x, int y, string[] items)
         {
-            Label lbl = new Label();
-            lbl.Text = label;
-            lbl.Location = new Drawing.Point(10, y + 3);
-            lbl.AutoSize = true;
-            parent.Controls.Add(lbl);
-
             ComboBox cmb = new ComboBox();
-            cmb.Location = new Drawing.Point(140, y);
+            cmb.Location = new Drawing.Point(x, y);
             cmb.Size = new Drawing.Size(200, 21);
             cmb.DropDownStyle = ComboBoxStyle.DropDown;
-            for (int i = 0; i < items.Length; i++)
-                cmb.Items.Add(items[i]);
-            if (items.Length > 0) cmb.SelectedIndex = 0;
-            parent.Controls.Add(cmb);
+            if (items != null)
+            {
+                for (int i = 0; i < items.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(items[i]))
+                        cmb.Items.Add(items[i]);
+                }
+            }
+            if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+            this.Controls.Add(cmb);
             return cmb;
         }
 
