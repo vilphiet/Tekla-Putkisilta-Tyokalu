@@ -1,15 +1,15 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin + dialogi parametreille
-// Yhteensopiva Teklan makrokääntäjän kanssa (vanhempi C#)
+// Yhteensopiva Teklan makrokääntäjän kanssa
 // Kopioi mallikansion macros\modeling\ -kansioon
 
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Drawing;
 using Tekla.Structures.Model;
 using Tekla.Structures.Geometry3d;
 using Tekla.Structures.Model.UI;
+using Drawing = System.Drawing;
 
 namespace UserMacros
 {
@@ -245,7 +245,7 @@ namespace UserMacros
         public PutkisiltaDialog()
         {
             this.Text = "Putkisilta";
-            this.Size = new Size(420, 640);
+            this.Size = new Drawing.Size(420, 640);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -269,8 +269,8 @@ namespace UserMacros
             txtStartNumber = AddTextBox("1", 160, y); y += 28;
             AddLabel("Korkeusasema:", 12, y);
             cmbHeightPos = new ComboBox();
-            cmbHeightPos.Location = new Point(160, y);
-            cmbHeightPos.Size = new Size(160, 21);
+            cmbHeightPos.Location = new Drawing.Point(160, y);
+            cmbHeightPos.Size = new Drawing.Size(160, 21);
             cmbHeightPos.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbHeightPos.Items.Add("Keskikorkeus");
             cmbHeightPos.Items.Add("Alapinta");
@@ -280,8 +280,8 @@ namespace UserMacros
 
             GroupBox grp = new GroupBox();
             grp.Text = "Profiilit";
-            grp.Location = new Point(12, y);
-            grp.Size = new Size(380, 300);
+            grp.Location = new Drawing.Point(12, y);
+            grp.Size = new Drawing.Size(380, 300);
             this.Controls.Add(grp);
             int gy = 25;
             cmbChordTop = AddProfileCombo(grp, "Yläpaarre:", gy, profiles); gy += 32;
@@ -295,15 +295,15 @@ namespace UserMacros
 
             Button btnOk = new Button();
             btnOk.Text = "OK";
-            btnOk.Location = new Point(140, 570);
-            btnOk.Size = new Size(80, 28);
+            btnOk.Location = new Drawing.Point(140, 570);
+            btnOk.Size = new Drawing.Size(80, 28);
             btnOk.DialogResult = DialogResult.OK;
             btnOk.Click += new EventHandler(btnOk_Click);
 
             Button btnCancel = new Button();
             btnCancel.Text = "Peruuta";
-            btnCancel.Location = new Point(230, 570);
-            btnCancel.Size = new Size(80, 28);
+            btnCancel.Location = new Drawing.Point(230, 570);
+            btnCancel.Size = new Drawing.Size(80, 28);
             btnCancel.DialogResult = DialogResult.Cancel;
 
             this.Controls.Add(btnOk);
@@ -321,7 +321,7 @@ namespace UserMacros
         {
             Label lbl = new Label();
             lbl.Text = text;
-            lbl.Location = new Point(x, y + 3);
+            lbl.Location = new Drawing.Point(x, y + 3);
             lbl.AutoSize = true;
             this.Controls.Add(lbl);
         }
@@ -330,8 +330,8 @@ namespace UserMacros
         {
             TextBox tb = new TextBox();
             tb.Text = text;
-            tb.Location = new Point(x, y);
-            tb.Size = new Size(100, 20);
+            tb.Location = new Drawing.Point(x, y);
+            tb.Size = new Drawing.Size(100, 20);
             this.Controls.Add(tb);
             return tb;
         }
@@ -340,13 +340,13 @@ namespace UserMacros
         {
             Label lbl = new Label();
             lbl.Text = label;
-            lbl.Location = new Point(10, y + 3);
+            lbl.Location = new Drawing.Point(10, y + 3);
             lbl.AutoSize = true;
             parent.Controls.Add(lbl);
 
             ComboBox cmb = new ComboBox();
-            cmb.Location = new Point(140, y);
-            cmb.Size = new Size(200, 21);
+            cmb.Location = new Drawing.Point(140, y);
+            cmb.Size = new Drawing.Size(200, 21);
             cmb.DropDownStyle = ComboBoxStyle.DropDown;
             for (int i = 0; i < items.Length; i++)
                 cmb.Items.Add(items[i]);
