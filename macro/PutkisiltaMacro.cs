@@ -1,6 +1,7 @@
 // PutkisiltaMacro.cs
 // Tekla Open API -makro putkisillan rungon luontiin
-// Dialogi parametreille
+// Korjattu: N-ristikko seinille, KT-ristikko katolle/lattialle, yhtenäiset paarteet
+// Profiilit kirjoitettavissa (katalogista), Part + Assembly prefix
 // Kopioi mallikansion macros\modeling\ -kansioon ja tallenna ANSI-muodossa
 
 using System;
@@ -24,80 +25,86 @@ namespace Tekla.Technology.Akit.UserScript
 
     public class PutkisiltaForm : Form
     {
-        TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial, txtClass, txtPrefix, txtStartNumber;
-        ComboBox cmbChordTop, cmbChordBot, cmbFrameVert, cmbFrameHoriz, cmbEndVert, cmbEndHoriz, cmbDiagWall, cmbDiagRF;
+        TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial, txtClass;
+        TextBox txtPartPrefix, txtPartStart, txtAsmPrefix, txtAsmStart;
+        TextBox txtChordTop, txtChordBot, txtFrameVert, txtFrameHoriz;
+        TextBox txtEndVert, txtEndHoriz, txtDiagWall, txtDiagRF;
         Button btnCreate, btnCancel;
 
         public PutkisiltaForm()
         {
-            this.Text = "Putkisilta";
-            this.Width = 480;
-            this.Height = 620;
+            this.Text = "Pipe Bridge";
+            this.Width = 520;
+            this.Height = 680;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MaximizeBox = false;
 
             int y = 15;
-            int labelW = 160;
-            int inputX = 180;
-            int inputW = 260;
+            int labelW = 170;
+            int inputX = 190;
+            int inputW = 280;
 
-            AddLabel("Leveys (sisämitta mm):", 15, y, labelW);
-            txtWidth = AddTextBox("1200", inputX, y, inputW); y += 30;
+            AddLabel("Width (inner mm):", 15, y, labelW);
+            txtWidth = AddTextBox("1200", inputX, y, inputW); y += 28;
 
-            AddLabel("Korkeus (sisämitta mm):", 15, y, labelW);
-            txtHeight = AddTextBox("1800", inputX, y, inputW); y += 30;
+            AddLabel("Height (inner mm):", 15, y, labelW);
+            txtHeight = AddTextBox("1800", inputX, y, inputW); y += 28;
 
-            AddLabel("Max kehäjako (mm):", 15, y, labelW);
-            txtMaxSpacing = AddTextBox("3000", inputX, y, inputW); y += 40;
+            AddLabel("Max frame spacing (mm):", 15, y, labelW);
+            txtMaxSpacing = AddTextBox("3000", inputX, y, inputW); y += 35;
 
-            AddLabel("Yläpaarre:", 15, y, labelW);
-            cmbChordTop = AddCombo(inputX, y, inputW, "CFRHS150X150X6"); y += 30;
+            AddLabel("Top chord profile:", 15, y, labelW);
+            txtChordTop = AddTextBox("CFRHS150X150X6", inputX, y, inputW); y += 28;
 
-            AddLabel("Alapaarre:", 15, y, labelW);
-            cmbChordBot = AddCombo(inputX, y, inputW, "CFRHS150X150X6"); y += 30;
+            AddLabel("Bottom chord profile:", 15, y, labelW);
+            txtChordBot = AddTextBox("CFRHS150X150X6", inputX, y, inputW); y += 28;
 
-            AddLabel("Kehä pysty:", 15, y, labelW);
-            cmbFrameVert = AddCombo(inputX, y, inputW, "CFRHS100X100X5"); y += 30;
+            AddLabel("Frame vertical profile:", 15, y, labelW);
+            txtFrameVert = AddTextBox("CFRHS100X100X5", inputX, y, inputW); y += 28;
 
-            AddLabel("Kehä vaaka:", 15, y, labelW);
-            cmbFrameHoriz = AddCombo(inputX, y, inputW, "CFRHS100X100X5"); y += 30;
+            AddLabel("Frame horizontal profile:", 15, y, labelW);
+            txtFrameHoriz = AddTextBox("CFRHS100X100X5", inputX, y, inputW); y += 28;
 
-            AddLabel("Pääty pysty (tyhjä=sama):", 15, y, labelW);
-            cmbEndVert = AddCombo(inputX, y, inputW, ""); y += 30;
+            AddLabel("End vertical (empty=same):", 15, y, labelW);
+            txtEndVert = AddTextBox("", inputX, y, inputW); y += 28;
 
-            AddLabel("Pääty vaaka (tyhjä=sama):", 15, y, labelW);
-            cmbEndHoriz = AddCombo(inputX, y, inputW, ""); y += 30;
+            AddLabel("End horizontal (empty=same):", 15, y, labelW);
+            txtEndHoriz = AddTextBox("", inputX, y, inputW); y += 28;
 
-            AddLabel("Seinädiagonaali:", 15, y, labelW);
-            cmbDiagWall = AddCombo(inputX, y, inputW, "CFRHS80X80X4"); y += 30;
+            AddLabel("Wall diagonal profile:", 15, y, labelW);
+            txtDiagWall = AddTextBox("CFRHS80X80X4", inputX, y, inputW); y += 28;
 
-            AddLabel("Katto/lattia diagonaali:", 15, y, labelW);
-            cmbDiagRF = AddCombo(inputX, y, inputW, "CFRHS80X80X4"); y += 40;
+            AddLabel("Roof/floor diagonal:", 15, y, labelW);
+            txtDiagRF = AddTextBox("CFRHS80X80X4", inputX, y, inputW); y += 35;
 
-            AddLabel("Materiaali:", 15, y, labelW);
-            txtMaterial = AddTextBox("S355J2", inputX, y, inputW); y += 30;
+            AddLabel("Material:", 15, y, labelW);
+            txtMaterial = AddTextBox("S355J2", inputX, y, inputW); y += 28;
 
-            AddLabel("Luokka:", 15, y, labelW);
-            txtClass = AddTextBox("1", inputX, y, 80);
+            AddLabel("Class:", 15, y, labelW);
+            txtClass = AddTextBox("1", inputX, y, 80); y += 35;
 
-            AddLabel("Etuliite:", 250, y, 70);
-            txtPrefix = AddTextBox("P", 320, y, 50);
+            AddLabel("Part prefix:", 15, y, labelW);
+            txtPartPrefix = AddTextBox("P", inputX, y, 80);
+            AddLabel("Start no:", 280, y, 60);
+            txtPartStart = AddTextBox("1", 340, y, 60); y += 28;
 
-            AddLabel("Aloitusnro:", 380, y, 70);
-            txtStartNumber = AddTextBox("1", 450, y, 50); y += 50;
+            AddLabel("Assembly prefix:", 15, y, labelW);
+            txtAsmPrefix = AddTextBox("A", inputX, y, 80);
+            AddLabel("Start no:", 280, y, 60);
+            txtAsmStart = AddTextBox("1", 340, y, 60); y += 40;
 
             btnCreate = new Button();
-            btnCreate.Text = "Luo silta";
-            btnCreate.Left = 120;
+            btnCreate.Text = "Create";
+            btnCreate.Left = 140;
             btnCreate.Top = y;
             btnCreate.Width = 100;
             btnCreate.Click += BtnCreate_Click;
             this.Controls.Add(btnCreate);
 
             btnCancel = new Button();
-            btnCancel.Text = "Peruuta";
-            btnCancel.Left = 240;
+            btnCancel.Text = "Cancel";
+            btnCancel.Left = 260;
             btnCancel.Top = y;
             btnCancel.Width = 100;
             btnCancel.Click += (s, e) => this.Close();
@@ -127,24 +134,6 @@ namespace Tekla.Technology.Akit.UserScript
             return tb;
         }
 
-        ComboBox AddCombo(int x, int y, int w, string defaultVal)
-        {
-            ComboBox cb = new ComboBox();
-            cb.Left = x;
-            cb.Top = y;
-            cb.Width = w;
-            cb.DropDownStyle = ComboBoxStyle.DropDown;
-            cb.Items.AddRange(new object[] {
-                "CFRHS60X60X3", "CFRHS80X80X4", "CFRHS100X100X5", "CFRHS120X120X5",
-                "CFRHS150X150X6", "CFRHS200X200X8", "CFRHS100X50X4", "CFRHS150X100X6",
-                "CFRHS200X100X6", ""
-            });
-            if (!string.IsNullOrEmpty(defaultVal))
-                cb.Text = defaultVal;
-            this.Controls.Add(cb);
-            return cb;
-        }
-
         void BtnCreate_Click(object sender, EventArgs e)
         {
             try
@@ -154,31 +143,33 @@ namespace Tekla.Technology.Akit.UserScript
                 double maxSpacing = double.Parse(txtMaxSpacing.Text);
                 string material = txtMaterial.Text.Trim();
                 string classStr = txtClass.Text.Trim();
-                string prefix = txtPrefix.Text.Trim();
-                int startNumber = int.Parse(txtStartNumber.Text);
+                string partPrefix = txtPartPrefix.Text.Trim();
+                int partStart = int.Parse(txtPartStart.Text);
+                string asmPrefix = txtAsmPrefix.Text.Trim();
+                int asmStart = int.Parse(txtAsmStart.Text);
 
-                string chordTop = cmbChordTop.Text.Trim();
-                string chordBot = cmbChordBot.Text.Trim();
-                string frameVert = cmbFrameVert.Text.Trim();
-                string frameHoriz = cmbFrameHoriz.Text.Trim();
-                string endVert = cmbEndVert.Text.Trim();
-                string endHoriz = cmbEndHoriz.Text.Trim();
-                string diagWall = cmbDiagWall.Text.Trim();
-                string diagRF = cmbDiagRF.Text.Trim();
+                string chordTop = txtChordTop.Text.Trim();
+                string chordBot = txtChordBot.Text.Trim();
+                string frameVert = txtFrameVert.Text.Trim();
+                string frameHoriz = txtFrameHoriz.Text.Trim();
+                string endVert = txtEndVert.Text.Trim();
+                string endHoriz = txtEndHoriz.Text.Trim();
+                string diagWall = txtDiagWall.Text.Trim();
+                string diagRF = txtDiagRF.Text.Trim();
 
                 this.Hide();
 
                 Model model = new Model();
                 if (!model.GetConnectionStatus())
                 {
-                    MessageBox.Show("Ei yhteyttä Tekla-malliin.");
+                    MessageBox.Show("No connection to Tekla model.");
                     this.Show();
                     return;
                 }
 
                 Picker picker = new Picker();
-                TSG.Point p1 = picker.PickPoint("Valitse sillan alkupiste");
-                TSG.Point p2 = picker.PickPoint("Valitse sillan loppupiste");
+                TSG.Point p1 = picker.PickPoint("Pick start point");
+                TSG.Point p2 = picker.PickPoint("Pick end point");
                 if (p1 == null || p2 == null)
                 {
                     this.Show();
@@ -189,7 +180,7 @@ namespace Tekla.Technology.Akit.UserScript
                 double length = direction.GetLength();
                 if (length < 100)
                 {
-                    MessageBox.Show("Pisteet liian lähellä.");
+                    MessageBox.Show("Points too close.");
                     this.Show();
                     return;
                 }
@@ -207,33 +198,39 @@ namespace Tekla.Technology.Akit.UserScript
                 for (int i = 0; i <= bayCount; i++)
                     framePositions.Add(p1 + direction * (i * actualSpacing));
 
-                CreateChords(model, framePositions, right, up, width, height, chordTop, chordBot, material, classStr, prefix, startNumber);
+                // Continuous chords
+                CreateContinuousChords(model, p1, p2, right, up, width, height, chordTop, chordBot, material, classStr, partPrefix, partStart, asmPrefix, asmStart);
+
+                // Frames
                 for (int i = 0; i < framePositions.Count; i++)
                 {
                     bool isEnd = (i == 0 || i == framePositions.Count - 1);
                     string vProf = (isEnd && !string.IsNullOrEmpty(endVert)) ? endVert : frameVert;
                     string hProf = (isEnd && !string.IsNullOrEmpty(endHoriz)) ? endHoriz : frameHoriz;
-                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, prefix, startNumber, chordTop, chordBot);
+                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
                 }
 
-                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, classStr, prefix, startNumber, chordTop, chordBot);
-                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, classStr, prefix, startNumber, chordTop, chordBot);
+                // Wall diagonals - N-truss
+                CreateWallDiagonalsN(model, framePositions, right, up, width, height, diagWall, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
+
+                // Roof/floor diagonals - KT-truss
+                CreateRoofFloorDiagonalsKT(model, framePositions, right, up, width, height, diagRF, material, classStr, partPrefix, partStart, asmPrefix, asmStart, chordTop, chordBot);
 
                 model.CommitChanges();
 
-                string msg = "Putkisilta luotu.\nPituus: " + length.ToString("F0") + " mm\nKehiä: " + (bayCount + 1).ToString() + "\nJako: " + actualSpacing.ToString("F0") + " mm";
+                string msg = "Pipe bridge created.\nLength: " + length.ToString("F0") + " mm\nFrames: " + (bayCount + 1).ToString() + "\nSpacing: " + actualSpacing.ToString("F0") + " mm";
                 MessageBox.Show(msg);
 
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Virhe: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
                 this.Show();
             }
         }
 
-        static void CreateChords(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string prefix, int startNumber)
+        static void CreateContinuousChords(Model model, TSG.Point p1, TSG.Point p2, TSG.Vector right, TSG.Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -241,21 +238,21 @@ namespace Tekla.Technology.Akit.UserScript
             double halfHTop = height / 2.0 + topHalf;
             double halfHBot = height / 2.0 + botHalf;
 
-            CreateChordPair(model, positions, right, up, halfW + topHalf, halfHTop, topProf, mat, classStr, prefix, startNumber);
-            CreateChordPair(model, positions, right, up, halfW + botHalf, -halfHBot, botProf, mat, classStr, prefix, startNumber);
-        }
+            // Top chords continuous
+            TSG.Point topL1 = p1 + right * (-halfW - topHalf) + up * halfHTop;
+            TSG.Point topL2 = p2 + right * (-halfW - topHalf) + up * halfHTop;
+            TSG.Point topR1 = p1 + right * (halfW + topHalf) + up * halfHTop;
+            TSG.Point topR2 = p2 + right * (halfW + topHalf) + up * halfHTop;
+            CreateBeam(model, topL1, topL2, topProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+            CreateBeam(model, topR1, topR2, topProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
 
-        static void CreateChordPair(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double xOff, double zOff, string profile, string mat, string classStr, string prefix, int startNumber)
-        {
-            for (int i = 0; i < positions.Count - 1; i++)
-            {
-                TSG.Point startL = positions[i] + right * (-xOff) + up * zOff;
-                TSG.Point endL = positions[i + 1] + right * (-xOff) + up * zOff;
-                TSG.Point startR = positions[i] + right * xOff + up * zOff;
-                TSG.Point endR = positions[i + 1] + right * xOff + up * zOff;
-                CreateBeam(model, startL, endL, profile, mat, classStr, prefix, startNumber);
-                CreateBeam(model, startR, endR, profile, mat, classStr, prefix, startNumber);
-            }
+            // Bottom chords continuous
+            TSG.Point botL1 = p1 + right * (-halfW - botHalf) + up * (-halfHBot);
+            TSG.Point botL2 = p2 + right * (-halfW - botHalf) + up * (-halfHBot);
+            TSG.Point botR1 = p1 + right * (halfW + botHalf) + up * (-halfHBot);
+            TSG.Point botR2 = p2 + right * (halfW + botHalf) + up * (-halfHBot);
+            CreateBeam(model, botL1, botL2, botProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+            CreateBeam(model, botR1, botR2, botProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
         }
 
         static double GetProfileSize(string profile)
@@ -269,7 +266,7 @@ namespace Tekla.Technology.Akit.UserScript
             return 100;
         }
 
-        static void CreateFrame(Model model, TSG.Point center, TSG.Vector right, TSG.Vector up, double width, double height, string vertProf, string horizProf, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        static void CreateFrame(Model model, TSG.Point center, TSG.Vector right, TSG.Vector up, double width, double height, string vertProf, string horizProf, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -282,13 +279,14 @@ namespace Tekla.Technology.Akit.UserScript
             TSG.Point bl = center + right * halfW + up * (-halfHBot);
             TSG.Point br = center + right * (-halfW) + up * (-halfHBot);
 
-            CreateBeam(model, bl, tl, vertProf, mat, classStr, prefix, startNumber);
-            CreateBeam(model, br, tr, vertProf, mat, classStr, prefix, startNumber);
-            CreateBeam(model, tl, tr, horizProf, mat, classStr, prefix, startNumber);
-            CreateBeam(model, bl, br, horizProf, mat, classStr, prefix, startNumber);
+            CreateBeam(model, bl, tl, vertProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+            CreateBeam(model, br, tr, vertProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+            CreateBeam(model, tl, tr, horizProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+            CreateBeam(model, bl, br, horizProf, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
         }
 
-        static void CreateWallDiagonals(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        // N-truss walls: direction changes at midpoint
+        static void CreateWallDiagonalsN(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -302,20 +300,21 @@ namespace Tekla.Technology.Akit.UserScript
                 double xOff = (side == 0) ? halfW : -halfW;
                 for (int i = 0; i < positions.Count - 1; i++)
                 {
-                    TSG.Point a = positions[i] + right * xOff + up * (-halfHBot);
-                    TSG.Point b = positions[i + 1] + right * xOff + up * halfHTop;
-                    TSG.Point c = positions[i] + right * xOff + up * halfHTop;
-                    TSG.Point d = positions[i + 1] + right * xOff + up * (-halfHBot);
+                    TSG.Point botStart = positions[i] + right * xOff + up * (-halfHBot);
+                    TSG.Point topEnd = positions[i + 1] + right * xOff + up * halfHTop;
+                    TSG.Point topStart = positions[i] + right * xOff + up * halfHTop;
+                    TSG.Point botEnd = positions[i + 1] + right * xOff + up * (-halfHBot);
 
                     if (i < mid)
-                        CreateBeam(model, a, b, prof, mat, classStr, prefix, startNumber);
+                        CreateBeam(model, botStart, topEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                     else
-                        CreateBeam(model, c, d, prof, mat, classStr, prefix, startNumber);
+                        CreateBeam(model, topStart, botEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                 }
             }
         }
 
-        static void CreateRoofFloorDiagonals(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
+        // KT-truss roof/floor: diagonals meet at bay center
+        static void CreateRoofFloorDiagonalsKT(Model model, List<TSG.Point> positions, TSG.Vector right, TSG.Vector up, double width, double height, string prof, string mat, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -340,15 +339,15 @@ namespace Tekla.Technology.Akit.UserScript
                         (positions[i].Z + positions[i + 1].Z) * 0.5
                     ) + up * zOff;
 
-                    CreateBeam(model, leftStart, midPoint, prof, mat, classStr, prefix, startNumber);
-                    CreateBeam(model, rightStart, midPoint, prof, mat, classStr, prefix, startNumber);
-                    CreateBeam(model, midPoint, leftEnd, prof, mat, classStr, prefix, startNumber);
-                    CreateBeam(model, midPoint, rightEnd, prof, mat, classStr, prefix, startNumber);
+                    CreateBeam(model, leftStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, rightStart, midPoint, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, midPoint, leftEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
+                    CreateBeam(model, midPoint, rightEnd, prof, mat, classStr, partPrefix, partStart, asmPrefix, asmStart);
                 }
             }
         }
 
-        static void CreateBeam(Model model, TSG.Point start, TSG.Point end, string profile, string material, string classStr, string prefix, int startNumber)
+        static void CreateBeam(Model model, TSG.Point start, TSG.Point end, string profile, string material, string classStr, string partPrefix, int partStart, string asmPrefix, int asmStart)
         {
             if (start == null || end == null || string.IsNullOrEmpty(profile)) return;
 
@@ -356,17 +355,24 @@ namespace Tekla.Technology.Akit.UserScript
             beam.Profile.ProfileString = profile;
             beam.Material.MaterialString = string.IsNullOrEmpty(material) ? "S355J2" : material;
             beam.Class = string.IsNullOrEmpty(classStr) ? "1" : classStr;
-            if (!string.IsNullOrEmpty(prefix))
+
+            if (!string.IsNullOrEmpty(partPrefix))
             {
-                beam.PartNumber.Prefix = prefix;
-                beam.PartNumber.StartNumber = startNumber;
+                beam.PartNumber.Prefix = partPrefix;
+                beam.PartNumber.StartNumber = partStart;
             }
+            if (!string.IsNullOrEmpty(asmPrefix))
+            {
+                beam.AssemblyNumber.Prefix = asmPrefix;
+                beam.AssemblyNumber.StartNumber = asmStart;
+            }
+
             beam.Position.Depth = Position.DepthEnum.MIDDLE;
             beam.Position.Plane = Position.PlaneEnum.MIDDLE;
-            
+
             if (!beam.Insert())
             {
-                MessageBox.Show("Palkin luonti epäonnistui:\nProfiili: " + profile + "\nMateriaali: " + material);
+                MessageBox.Show("Failed to create beam:\nProfile: " + profile + "\nMaterial: " + material);
             }
         }
     }
