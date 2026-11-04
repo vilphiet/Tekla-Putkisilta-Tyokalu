@@ -209,12 +209,17 @@ namespace UserMacros
 
         static void CreateBeam(Model model, TSG.Point start, TSG.Point end, string profile, string material, string classStr, string prefix, int startNumber)
         {
+            if (start == null || end == null || string.IsNullOrEmpty(profile)) return;
+
             Beam beam = new Beam(start, end);
             beam.Profile.ProfileString = profile;
-            beam.Material.MaterialString = material;
-            beam.Class = classStr;
-            beam.PartNumber.Prefix = prefix;
-            beam.PartNumber.StartNumber = startNumber;
+            beam.Material.MaterialString = string.IsNullOrEmpty(material) ? "S355J2" : material;
+            beam.Class = string.IsNullOrEmpty(classStr) ? "1" : classStr;
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                beam.PartNumber.Prefix = prefix;
+                beam.PartNumber.StartNumber = startNumber;
+            }
             beam.Position.Depth = Position.DepthEnum.MIDDLE;
             beam.Position.Plane = Position.PlaneEnum.MIDDLE;
             beam.Insert();
@@ -383,14 +388,14 @@ namespace UserMacros
 
             HeightPositionValue = cmbHeightPos.SelectedIndex;
 
-            ProfileChordTop = cmbChordTop.Text;
-            ProfileChordBottom = cmbChordBot.Text;
-            ProfileFrameVertical = cmbFrameVert.Text;
-            ProfileFrameHorizontal = cmbFrameHoriz.Text;
+            ProfileChordTop = string.IsNullOrEmpty(cmbChordTop.Text) ? "SHS150*150*6" : cmbChordTop.Text;
+            ProfileChordBottom = string.IsNullOrEmpty(cmbChordBot.Text) ? "SHS150*150*6" : cmbChordBot.Text;
+            ProfileFrameVertical = string.IsNullOrEmpty(cmbFrameVert.Text) ? "SHS100*100*5" : cmbFrameVert.Text;
+            ProfileFrameHorizontal = string.IsNullOrEmpty(cmbFrameHoriz.Text) ? "SHS100*100*5" : cmbFrameHoriz.Text;
             ProfileEndVertical = cmbEndVert.Text;
             ProfileEndHorizontal = cmbEndHoriz.Text;
-            ProfileDiagonalWall = cmbDiagWall.Text;
-            ProfileDiagonalRoofFloor = cmbDiagRF.Text;
+            ProfileDiagonalWall = string.IsNullOrEmpty(cmbDiagWall.Text) ? "SHS80*80*4" : cmbDiagWall.Text;
+            ProfileDiagonalRoofFloor = string.IsNullOrEmpty(cmbDiagRF.Text) ? "SHS80*80*4" : cmbDiagRF.Text;
         }
     }
 }
