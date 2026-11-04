@@ -35,6 +35,9 @@ namespace UserMacros
                 double height = form.HeightValue;
                 double maxSpacing = form.MaxSpacingValue;
                 string material = form.MaterialValue;
+                string classStr = form.ClassValue;
+                string prefix = form.PrefixValue;
+                int startNumber = form.StartNumberValue;
                 int heightPos = form.HeightPositionValue;
 
                 string chordTop = form.ProfileChordTop;
@@ -75,24 +78,24 @@ namespace UserMacros
                 for (int i = 0; i <= bayCount; i++)
                     framePositions.Add(p1 + direction * (i * actualSpacing));
 
-                CreateChords(model, framePositions, right, up, width, height, chordTop, chordBot, material);
+                CreateChords(model, framePositions, right, up, width, height, chordTop, chordBot, material, classStr, prefix, startNumber);
                 for (int i = 0; i < framePositions.Count; i++)
                 {
                     bool isEnd = i == 0 || i == framePositions.Count - 1;
                     string vProf = isEnd && !string.IsNullOrEmpty(endVert) ? endVert : frameVert;
                     string hProf = isEnd && !string.IsNullOrEmpty(endHoriz) ? endHoriz : frameHoriz;
-                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, chordTop, chordBot);
+                    CreateFrame(model, framePositions[i], right, up, width, height, vProf, hProf, material, classStr, prefix, startNumber, chordTop, chordBot);
                 }
 
-                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, chordTop, chordBot);
-                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, chordTop, chordBot);
+                CreateWallDiagonals(model, framePositions, right, up, width, height, diagWall, material, classStr, prefix, startNumber, chordTop, chordBot);
+                CreateRoofFloorDiagonals(model, framePositions, right, up, width, height, diagRF, material, classStr, prefix, startNumber, chordTop, chordBot);
 
                 model.CommitChanges();
                 MessageBox.Show($"Putkisilta luotu.\nPituus: {length:F0} mm\nKehiä: {bayCount + 1}\nJako: {actualSpacing:F0} mm");
             }
         }
 
-        static void CreateChords(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string topProf, string botProf, string mat)
+        static void CreateChords(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string topProf, string botProf, string mat, string classStr, string prefix, int startNumber)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -100,11 +103,11 @@ namespace UserMacros
             double halfHTop = height / 2.0 + topHalf;
             double halfHBot = height / 2.0 + botHalf;
 
-            CreateChordPair(model, positions, right, up, halfW + topHalf, halfHTop, topProf, mat);
-            CreateChordPair(model, positions, right, up, halfW + botHalf, -halfHBot, botProf, mat);
+            CreateChordPair(model, positions, right, up, halfW + topHalf, halfHTop, topProf, mat, classStr, prefix, startNumber);
+            CreateChordPair(model, positions, right, up, halfW + botHalf, -halfHBot, botProf, mat, classStr, prefix, startNumber);
         }
 
-        static void CreateChordPair(Model model, List<Point> positions, Vector right, Vector up, double xOff, double zOff, string profile, string mat)
+        static void CreateChordPair(Model model, List<Point> positions, Vector right, Vector up, double xOff, double zOff, string profile, string mat, string classStr, string prefix, int startNumber)
         {
             for (int i = 0; i < positions.Count - 1; i++)
             {
@@ -112,8 +115,8 @@ namespace UserMacros
                 Point endL   = positions[i + 1] + right * (-xOff) + up * zOff;
                 Point startR = positions[i] + right * xOff + up * zOff;
                 Point endR   = positions[i + 1] + right * xOff + up * zOff;
-                CreateBeam(model, startL, endL, profile, mat, "1");
-                CreateBeam(model, startR, endR, profile, mat, "1");
+                CreateBeam(model, startL, endL, profile, mat, classStr, prefix, startNumber);
+                CreateBeam(model, startR, endR, profile, mat, classStr, prefix, startNumber);
             }
         }
 
@@ -126,7 +129,7 @@ namespace UserMacros
             return 100;
         }
 
-        static void CreateFrame(Model model, Point center, Vector right, Vector up, double width, double height, string vertProf, string horizProf, string mat, string topProf, string botProf)
+        static void CreateFrame(Model model, Point center, Vector right, Vector up, double width, double height, string vertProf, string horizProf, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -139,13 +142,13 @@ namespace UserMacros
             Point bl = center + right * halfW + up * (-halfHBot);
             Point br = center + right * (-halfW) + up * (-halfHBot);
 
-            CreateBeam(model, bl, tl, vertProf, mat, "2");
-            CreateBeam(model, br, tr, vertProf, mat, "2");
-            CreateBeam(model, tl, tr, horizProf, mat, "3");
-            CreateBeam(model, bl, br, horizProf, mat, "3");
+            CreateBeam(model, bl, tl, vertProf, mat, classStr, prefix, startNumber);
+            CreateBeam(model, br, tr, vertProf, mat, classStr, prefix, startNumber);
+            CreateBeam(model, tl, tr, horizProf, mat, classStr, prefix, startNumber);
+            CreateBeam(model, bl, br, horizProf, mat, classStr, prefix, startNumber);
         }
 
-        static void CreateWallDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string topProf, string botProf)
+        static void CreateWallDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -165,14 +168,14 @@ namespace UserMacros
                     Point d = positions[i + 1] + right * xOff + up * (-halfHBot);
 
                     if (i < mid)
-                        CreateBeam(model, a, b, prof, mat, "4");
+                        CreateBeam(model, a, b, prof, mat, classStr, prefix, startNumber);
                     else
-                        CreateBeam(model, c, d, prof, mat, "4");
+                        CreateBeam(model, c, d, prof, mat, classStr, prefix, startNumber);
                 }
             }
         }
 
-        static void CreateRoofFloorDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string topProf, string botProf)
+        static void CreateRoofFloorDiagonals(Model model, List<Point> positions, Vector right, Vector up, double width, double height, string prof, string mat, string classStr, string prefix, int startNumber, string topProf, string botProf)
         {
             double topHalf = GetProfileSize(topProf) / 2.0;
             double botHalf = GetProfileSize(botProf) / 2.0;
@@ -192,21 +195,22 @@ namespace UserMacros
                     Point rightEnd = positions[i + 1] + right * halfW + up * zOff;
                     Point midPoint = (positions[i] + positions[i + 1]) * 0.5 + up * zOff;
 
-                    CreateBeam(model, leftStart, midPoint, prof, mat, "5");
-                    CreateBeam(model, rightStart, midPoint, prof, mat, "5");
-                    CreateBeam(model, midPoint, leftEnd, prof, mat, "5");
-                    CreateBeam(model, midPoint, rightEnd, prof, mat, "5");
+                    CreateBeam(model, leftStart, midPoint, prof, mat, classStr, prefix, startNumber);
+                    CreateBeam(model, rightStart, midPoint, prof, mat, classStr, prefix, startNumber);
+                    CreateBeam(model, midPoint, leftEnd, prof, mat, classStr, prefix, startNumber);
+                    CreateBeam(model, midPoint, rightEnd, prof, mat, classStr, prefix, startNumber);
                 }
             }
         }
 
-        static void CreateBeam(Model model, Point start, Point end, string profile, string material, string classStr)
+        static void CreateBeam(Model model, Point start, Point end, string profile, string material, string classStr, string prefix, int startNumber)
         {
             var beam = new Beam(start, end)
             {
                 Profile = { ProfileString = profile },
                 Material = { MaterialString = material },
-                Class = classStr
+                Class = classStr,
+                PartNumber = { Prefix = prefix, StartNumber = startNumber }
             };
             beam.Position.Depth = Position.DepthEnum.MIDDLE;
             beam.Position.Plane = Position.PlaneEnum.MIDDLE;
@@ -220,6 +224,9 @@ namespace UserMacros
         public double HeightValue { get; private set; } = 1800;
         public double MaxSpacingValue { get; private set; } = 3000;
         public string MaterialValue { get; private set; } = "S355J2";
+        public string ClassValue { get; private set; } = "1";
+        public string PrefixValue { get; private set; } = "P";
+        public int StartNumberValue { get; private set; } = 1;
         public int HeightPositionValue { get; private set; } = 0;
 
         public string ProfileChordTop { get; private set; } = "SHS150*150*6";
@@ -231,7 +238,7 @@ namespace UserMacros
         public string ProfileDiagonalWall { get; private set; } = "SHS80*80*4";
         public string ProfileDiagonalRoofFloor { get; private set; } = "SHS80*80*4";
 
-        private TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial;
+        private TextBox txtWidth, txtHeight, txtMaxSpacing, txtMaterial, txtClass, txtPrefix, txtStartNumber;
         private ComboBox cmbHeightPos;
         private ComboBox cmbChordTop, cmbChordBot, cmbFrameVert, cmbFrameHoriz;
         private ComboBox cmbEndVert, cmbEndHoriz, cmbDiagWall, cmbDiagRF;
@@ -239,7 +246,7 @@ namespace UserMacros
         public PutkisiltaDialog()
         {
             this.Text = "Putkisilta";
-            this.Size = new Size(420, 560);
+            this.Size = new Size(420, 640);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -255,6 +262,12 @@ namespace UserMacros
             txtMaxSpacing = AddTextBox("3000", 160, y); y += 28;
             AddLabel("Materiaali:", 12, y);
             txtMaterial = AddTextBox("S355J2", 160, y); y += 28;
+            AddLabel("Class:", 12, y);
+            txtClass = AddTextBox("1", 160, y); y += 28;
+            AddLabel("Prefix:", 12, y);
+            txtPrefix = AddTextBox("P", 160, y); y += 28;
+            AddLabel("Start number:", 12, y);
+            txtStartNumber = AddTextBox("1", 160, y); y += 28;
             AddLabel("Korkeusasema:", 12, y);
             cmbHeightPos = new ComboBox { Location = new Point(160, y), Size = new Size(160, 21), DropDownStyle = ComboBoxStyle.DropDownList };
             cmbHeightPos.Items.AddRange(new object[] { "Keskikorkeus", "Alapinta", "Yläpinta" });
@@ -273,8 +286,8 @@ namespace UserMacros
             cmbDiagWall = AddProfileCombo(grp, "Seinä diag.:", gy, profiles); gy += 32;
             cmbDiagRF = AddProfileCombo(grp, "Katto/lattia diag.:", gy, profiles);
 
-            var btnOk = new Button { Text = "OK", Location = new Point(140, 490), Size = new Size(80, 28), DialogResult = DialogResult.OK };
-            var btnCancel = new Button { Text = "Peruuta", Location = new Point(230, 490), Size = new Size(80, 28), DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "OK", Location = new Point(140, 570), Size = new Size(80, 28), DialogResult = DialogResult.OK };
+            var btnCancel = new Button { Text = "Peruuta", Location = new Point(230, 570), Size = new Size(80, 28), DialogResult = DialogResult.Cancel };
             btnOk.Click += (s, e) => ReadValues();
             this.Controls.Add(btnOk);
             this.Controls.Add(btnCancel);
@@ -310,6 +323,9 @@ namespace UserMacros
             double.TryParse(txtHeight.Text, out double h); HeightValue = h > 0 ? h : 1800;
             double.TryParse(txtMaxSpacing.Text, out double ms); MaxSpacingValue = ms > 0 ? ms : 3000;
             MaterialValue = string.IsNullOrWhiteSpace(txtMaterial.Text) ? "S355J2" : txtMaterial.Text;
+            ClassValue = string.IsNullOrWhiteSpace(txtClass.Text) ? "1" : txtClass.Text;
+            PrefixValue = string.IsNullOrWhiteSpace(txtPrefix.Text) ? "P" : txtPrefix.Text;
+            int.TryParse(txtStartNumber.Text, out int sn); StartNumberValue = sn > 0 ? sn : 1;
             HeightPositionValue = cmbHeightPos.SelectedIndex;
 
             ProfileChordTop = cmbChordTop.Text;
